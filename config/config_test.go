@@ -3,14 +3,13 @@ package config_test
 import (
 	"testing"
 
-	"storage.oray.com/config"
+	"go-issued-service/config"
 )
 
-func Test_MustLoadConfig(t *testing.T) {
-
+func Test_LoadConfig(t *testing.T) {
 	cfile := "../config.toml"
 
-	config := config.MustLoadConfig(cfile)
+	c := config.LoadConfig(cfile)
 
-	t.Logf("%#v", config.Upload["profile"])
+	t.Logf("%#v", c.Server.Mode)
 }

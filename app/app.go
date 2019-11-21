@@ -1,8 +1,8 @@
 package app
 
 import (
-	"go-issued-service/service"
 	"go-issued-service/library/container"
+	"go-issued-service/service"
 	"os"
 	"os/signal"
 )
@@ -17,7 +17,9 @@ func New (configFile string) *App {
 	}
 
 	app := &App{}
-	app.Use(service.NewIssued())
+	app.Use(service.NewIssuer())
+	app.Use(service.NewHttpReceiver())
+	app.Use(service.NewRpcReceiver())
 
 	return app
 }

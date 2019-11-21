@@ -2,6 +2,8 @@ package container
 
 import (
 	"go-issued-service/config"
+	"go-issued-service/library/storage"
+	"go-issued-service/library/dispatcher"
 	"log"
 	"os"
 	"time"
@@ -12,6 +14,8 @@ var Mgr *Manager
 type Manager struct {
 	Config *config.Config
 	Logger *log.Logger
+	Storager *storage.Redis
+	Dispatcher *dispatcher.Dispatcher
 }
 
 func NewManager(configFile string) (*Manager, error) {
@@ -19,6 +23,8 @@ func NewManager(configFile string) (*Manager, error) {
 
 	Mgr = &Manager{
 		Config: conf,
+		Storager: storage.NewRedis(conf.Storage.Address, conf.Storage.Password),
+		Dispatcher: dispatcher.New(),
 	}
 
 	if conf.Logger.Type == "file" {

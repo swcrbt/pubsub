@@ -2,14 +2,32 @@ package config
 
 import (
 	"io/ioutil"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
 
 // ServerConfig server config
 type ServerConfig struct {
+	Mode         string
+	Issuer       IssuerConfig
+	ReceiverHttp ReceiverHttpConfig `toml:"receiver_http"`
+	ReceiverRpc  ReceiverRpcConfig  `toml:"receiver_rpc"`
+}
+
+type IssuerConfig struct {
+	Port int
+
+	HeartbeatInterval time.Duration `toml:"heartbeat_interval"`
+	HeartbeatTimeout  int           `toml:"heartbeat_timeout"`
+}
+
+type ReceiverHttpConfig struct {
+	Port int
+}
+
+type ReceiverRpcConfig struct {
 	Address string
-	Mode string
 }
 
 type StorageConfig struct {

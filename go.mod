@@ -4,17 +4,26 @@ go 1.12
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/gin-gonic/gin v1.4.0
 	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/websocket v1.4.1
-	github.com/onsi/ginkgo v1.10.3 // indirect
-	github.com/onsi/gomega v1.7.1 // indirect
+	github.com/onsi/ginkgo v1.10.3
+	github.com/onsi/gomega v1.7.1
 	github.com/spf13/cobra v0.0.5
+	github.com/ugorji/go v1.1.7 // indirect
+	gitlab.orayer.com/golang/errors v0.0.0-20191022062103-5ac945e04fd9
+	gitlab.orayer.com/golang/server v0.0.0-20191119074007-4e60456b9561
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+	golang.org/x/sys v0.0.0-20191119195528-f068ffe820e4 // indirect
+	google.golang.org/grpc v1.21.0
 )
 
 replace (
-	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9 => github.com/golang/crypto v0.0.0-20181203042331-505ab145d0a9
-	golang.org/x/net v0.0.0-20180925072008-f04abc6bdfa7 => github.com/golang/net v0.0.0-20180911220305-26e67e76b6c3
-	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f => github.com/golang/sync v0.0.0-20180314180146-1d60e4601c6f
+	golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f => github.com/golang/crypto v0.0.0-20191117063200-497ca9f6d64f
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c => github.com/golang/net v0.0.0-20190503192946-f4e77d36d62c
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e => github.com/golang/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys => github.com/golang/sys v0.0.0-20190602015325-4c4f7f33c9ed
-	golang.org/x/text v0.3.0 => github.com/golang/text v0.3.0
+	golang.org/x/text v0.3.2 => github.com/golang/text v0.3.2
+	google.golang.org/grpc => github.com/grpc/grpc-go v1.21.0
 )
