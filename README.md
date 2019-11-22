@@ -36,9 +36,9 @@ cli := protos.NewIReleaseServiceClient(con)
 resp, err = cli.Release(
     context.Background(),
     &protos.ReleaseBody{
-        Action:"pgygame",
-        UniqIds:[]string{"1","2","3"},
-        Data: map[string]string{"a": "b", "b": "c"},
+        Action:"xxx",
+        UniqIds:[]string{"x"},
+        Data: map[string]string{"x": "xxxx"},
     })
 ```
 
@@ -49,7 +49,7 @@ resp, err = cli.Release(
 客户端可以在1分钟内未收到服务器的心跳包断开之前的连接重新连接
 
 ``` javascript
-websocket = new WebSocket("ws://127.0.0.1:8888/subscribe?key=eyJhY3Rpb24iOiJwZ3lnYW1lIiwidW5pcWlkIjoiMTczMDYwIiwic2VjcmV0IjoiMzg5M2RlZTk1YzQwNTc0NDlhMGNlZjU0YzY2ODFkODcwZWEzOTEyZCJ9");
+websocket = new WebSocket("ws://127.0.0.1:8888/subscribe?key=xxx");
 
 websocket.onopen = function(evt) {
     console.log('open: ');
