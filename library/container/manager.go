@@ -1,9 +1,9 @@
 package container
 
 import (
-	"go-issued-service/config"
-	"go-issued-service/library/storage"
-	"go-issued-service/library/dispatcher"
+	"gitlab.orayer.com/golang/issue/config"
+	"gitlab.orayer.com/golang/issue/library/storage"
+	"gitlab.orayer.com/golang/issue/library/dispatcher"
 	"log"
 	"os"
 	"time"

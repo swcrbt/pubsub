@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/server"
-	"go-issued-service/library/container"
-	"go-issued-service/library/websocket"
-	"go-issued-service/middleware"
+	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/issue/library/websocket"
+	"gitlab.orayer.com/golang/issue/middleware"
 	"net/http"
 	"time"
 )
 
 type Issuer struct {
 	handler func(c *gin.Context)
+	server *server.HttpServer
 }
 
 func NewIssuer() *Issuer {
@@ -49,11 +50,20 @@ func (iss *Issuer) Run() error {
 		}*/
 	}()
 
+	iss.server = rev
+
 	return nil
 }
 
 func (iss *Issuer) GetName() string {
 	return "issuer"
+}
+
+func (rec *Issuer) Stop() error  {
+	if rec.server != nil {
+		return rec.server.Shutdown()
+	}
+	return nil
 }
 
 func issuerHandler(c *gin.Context) {

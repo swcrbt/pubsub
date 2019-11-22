@@ -1,8 +1,8 @@
 package service
 
 import (
-	"go-issued-service/library/container"
-	"go-issued-service/protos"
+	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/issue/protos"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
@@ -13,6 +13,7 @@ type ReleaseService struct {
 
 type RpcReceiver struct {
 	handler *ReleaseService
+	server *grpc.Server
 }
 
 func NewRpcReceiver() *RpcReceiver {
@@ -39,11 +40,20 @@ func (rec *RpcReceiver) Run() error {
 		}
 	}()
 
+	rec.server = grpcServer
+
 	return nil
 }
 
 func (rec *RpcReceiver) GetName() string {
 	return "receiver-rpc"
+}
+
+func (rec *RpcReceiver) Stop() error {
+	if rec.server != nil {
+		rec.server.GracefulStop()
+	}
+	return nil
 }
 
 func (ser *ReleaseService) Release(ctx context.Context, req *protos.ReleaseBody) (*protos.ReleaseResponse, error) {

@@ -3,7 +3,7 @@ package config_test
 import (
 	"testing"
 
-	"go-issued-service/config"
+	"gitlab.orayer.com/golang/issue/config"
 )
 
 func Test_LoadConfig(t *testing.T) {

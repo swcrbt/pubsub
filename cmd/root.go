@@ -3,13 +3,16 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"gitlab.orayer.com/golang/issue/app"
 	"os"
 )
 
 var rootCmd = &cobra.Command{
-	Use:"go-issued-service",
-	Short:"Long connection Issued service",
+	Use:   "gitlab.orayer.com/golang/issue",
+	Short: "Long connection Issued service",
 }
+
+var App *app.App
 
 // Execute 执行命令
 func Execute() {

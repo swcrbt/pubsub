@@ -1,4 +1,4 @@
-module go-issued-service
+module gitlab.orayer.com/golang/issue
 
 go 1.12
 

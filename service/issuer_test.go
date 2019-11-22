@@ -3,7 +3,7 @@ package service_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go-issued-service/library/container"
+	"gitlab.orayer.com/golang/issue/library/container"
 	"testing"
 )
 

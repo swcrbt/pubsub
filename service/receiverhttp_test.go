@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"go-issued-service/library/container"
-	"go-issued-service/service"
+	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/issue/service"
 	"net/http"
 	"strconv"
 )

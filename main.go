@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-issued-service/cmd"
+	"gitlab.orayer.com/golang/issue/cmd"
 )
 
 var (

@@ -1,8 +1,8 @@
 package app
 
 import (
-	"go-issued-service/library/container"
-	"go-issued-service/service"
+	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/issue/service"
 	"os"
 	"os/signal"
 )
@@ -19,7 +19,7 @@ func New (configFile string) *App {
 	app := &App{}
 	app.Use(service.NewIssuer())
 	app.Use(service.NewHttpReceiver())
-	app.Use(service.NewRpcReceiver())
+	//app.Use(service.NewRpcReceiver())
 
 	return app
 }
@@ -34,6 +34,29 @@ func (app *App) Run() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
+	app.Stop()
+}
+
+func (app *App) Reload()  {
+	for _, ser := range app.services {
+		if err := ser.Stop(); err != nil {
+			container.Mgr.Logger.Printf("\"%s\" run failed: %v\n", ser.GetName(), err)
+		}
+		if err := ser.Run(); err != nil {
+			container.Mgr.Logger.Printf("\"%s\" stop failed: %v\n", ser.GetName(), err)
+		}
+	}
+}
+
+func (app *App) Stop ()  {
+	for _, ser := range app.services {
+		if err := ser.Stop(); err != nil {
+			container.Mgr.Logger.Printf("\"%s\" stop failed: %v\n", ser.GetName(), err)
+		}
+
+		container.Mgr.Logger.Printf("\"%s\" stop successed\n", ser.GetName())
+	}
 }
 
 func (app *App) Use(ser service.Service)  {

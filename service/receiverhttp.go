@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/errors"
 	"gitlab.orayer.com/golang/server"
-	"go-issued-service/library/container"
+	"gitlab.orayer.com/golang/issue/library/container"
 	"net/http"
 )
 
@@ -21,6 +21,7 @@ type ReleaseBody struct {
 
 type HttpReceiver struct {
 	handler func(c *gin.Context)
+	server *server.HttpServer
 }
 
 func NewHttpReceiver() *HttpReceiver {
@@ -49,11 +50,20 @@ func (rec *HttpReceiver) Run() error {
 		}
 	}()
 
+	rec.server = rev
+
 	return nil
 }
 
 func (rec *HttpReceiver) GetName() string {
 	return "receiver-http"
+}
+
+func (rec *HttpReceiver) Stop() error  {
+	if rec.server != nil {
+		return rec.server.Shutdown()
+	}
+	return nil
 }
 
 func receiverHandler(c *gin.Context) {
