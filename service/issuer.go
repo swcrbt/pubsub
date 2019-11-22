@@ -98,7 +98,7 @@ func issuerHandler(c *gin.Context) {
 				return
 			}
 
-			if err = conn.WriteMessage([]byte("heartbeat")); err != nil {
+			if err = conn.WriteMessage([]byte("_heartbeat_")); err != nil {
 				fmt.Println(err)
 				container.Mgr.Dispatcher.UnSubscribe(auth.(middleware.StorageRecord).Action, auth.(middleware.StorageRecord).UniqId, index)
 				return

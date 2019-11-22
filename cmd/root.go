@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "gitlab.orayer.com/golang/issue",
-	Short: "Long connection Issued service",
+	Short: "Long connection data Issue service",
 }
 
 var App *app.App

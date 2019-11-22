@@ -53,9 +53,9 @@ func (app *App) Stop ()  {
 	for _, ser := range app.services {
 		if err := ser.Stop(); err != nil {
 			container.Mgr.Logger.Printf("\"%s\" stop failed: %v\n", ser.GetName(), err)
+		} else {
+			container.Mgr.Logger.Printf("\"%s\" stop successed\n", ser.GetName())
 		}
-
-		container.Mgr.Logger.Printf("\"%s\" stop successed\n", ser.GetName())
 	}
 }
 
