@@ -1,5 +1,22 @@
 # 数据下发服务
 
+### 命令
+```
+./issue start|restart|stop 
+
+-c 配置文件
+-d 后台运行
+
+TODO: restart
+```
+
+### 生成go protos
+```
+go get github.com/golang/protobuf/protoc-gen-go
+
+protoc --go_out=plugins=grpc:. ./protos/*.proto
+```
+
 ## 服务端
 
 #### 支持http和grpc方式发布数据

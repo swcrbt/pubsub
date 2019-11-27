@@ -25,9 +25,9 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type ReleaseBody struct {
-	Action               string            `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
-	UniqIds              []string          `protobuf:"bytes,2,rep,name=uniqIds,proto3" json:"uniqIds,omitempty"`
-	Data                 map[string]string `protobuf:"bytes,3,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Topics               []string          `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
+	Action               string            `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	Body                 map[string]string `protobuf:"bytes,3,rep,name=body,proto3" json:"body,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -58,6 +58,13 @@ func (m *ReleaseBody) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReleaseBody proto.InternalMessageInfo
 
+func (m *ReleaseBody) GetTopics() []string {
+	if m != nil {
+		return m.Topics
+	}
+	return nil
+}
+
 func (m *ReleaseBody) GetAction() string {
 	if m != nil {
 		return m.Action
@@ -65,22 +72,15 @@ func (m *ReleaseBody) GetAction() string {
 	return ""
 }
 
-func (m *ReleaseBody) GetUniqIds() []string {
+func (m *ReleaseBody) GetBody() map[string]string {
 	if m != nil {
-		return m.UniqIds
-	}
-	return nil
-}
-
-func (m *ReleaseBody) GetData() map[string]string {
-	if m != nil {
-		return m.Data
+		return m.Body
 	}
 	return nil
 }
 
 type ReleaseResponse struct {
-	Value                map[string]string `protobuf:"bytes,1,rep,name=value,proto3" json:"value,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Value                map[string]uint32 `protobuf:"bytes,1,rep,name=value,proto3" json:"value,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -111,7 +111,7 @@ func (m *ReleaseResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReleaseResponse proto.InternalMessageInfo
 
-func (m *ReleaseResponse) GetValue() map[string]string {
+func (m *ReleaseResponse) GetValue() map[string]uint32 {
 	if m != nil {
 		return m.Value
 	}
@@ -120,31 +120,30 @@ func (m *ReleaseResponse) GetValue() map[string]string {
 
 func init() {
 	proto.RegisterType((*ReleaseBody)(nil), "protos.ReleaseBody")
-	proto.RegisterMapType((map[string]string)(nil), "protos.ReleaseBody.DataEntry")
+	proto.RegisterMapType((map[string]string)(nil), "protos.ReleaseBody.BodyEntry")
 	proto.RegisterType((*ReleaseResponse)(nil), "protos.ReleaseResponse")
-	proto.RegisterMapType((map[string]string)(nil), "protos.ReleaseResponse.ValueEntry")
+	proto.RegisterMapType((map[string]uint32)(nil), "protos.ReleaseResponse.ValueEntry")
 }
 
 func init() { proto.RegisterFile("protos/release.proto", fileDescriptor_860e6762a193109f) }
 
 var fileDescriptor_860e6762a193109f = []byte{
-	// 246 bytes of a gzipped FileDescriptorProto
+	// 235 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x29, 0x28, 0xca, 0x2f,
 	0xc9, 0x2f, 0xd6, 0x2f, 0x4a, 0xcd, 0x49, 0x4d, 0x2c, 0x4e, 0xd5, 0x03, 0x73, 0x85, 0xd8, 0x20,
-	0xa2, 0x4a, 0xab, 0x19, 0xb9, 0xb8, 0x83, 0x20, 0x32, 0x4e, 0xf9, 0x29, 0x95, 0x42, 0x62, 0x5c,
-	0x6c, 0x89, 0xc9, 0x25, 0x99, 0xf9, 0x79, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x50, 0x9e,
-	0x90, 0x04, 0x17, 0x7b, 0x69, 0x5e, 0x66, 0xa1, 0x67, 0x4a, 0xb1, 0x04, 0x93, 0x02, 0xb3, 0x06,
-	0x67, 0x10, 0x8c, 0x2b, 0x64, 0xc8, 0xc5, 0x92, 0x92, 0x58, 0x92, 0x28, 0xc1, 0xac, 0xc0, 0xac,
-	0xc1, 0x6d, 0x24, 0x0b, 0x31, 0xbf, 0x58, 0x0f, 0xc9, 0x50, 0x3d, 0x97, 0xc4, 0x92, 0x44, 0xd7,
-	0xbc, 0x92, 0xa2, 0xca, 0x20, 0xb0, 0x52, 0x29, 0x73, 0x2e, 0x4e, 0xb8, 0x90, 0x90, 0x00, 0x17,
-	0x73, 0x76, 0x6a, 0x25, 0xd4, 0x3a, 0x10, 0x53, 0x48, 0x84, 0x8b, 0xb5, 0x2c, 0x31, 0xa7, 0x34,
-	0x55, 0x82, 0x09, 0x2c, 0x06, 0xe1, 0x58, 0x31, 0x59, 0x30, 0x2a, 0xb5, 0x32, 0x72, 0xf1, 0x43,
-	0x0d, 0x0e, 0x4a, 0x2d, 0x2e, 0xc8, 0xcf, 0x2b, 0x4e, 0x15, 0xb2, 0x80, 0xa9, 0x66, 0x04, 0x3b,
-	0x40, 0x09, 0xcd, 0x01, 0x30, 0x75, 0x7a, 0x61, 0x20, 0x45, 0x10, 0x57, 0x40, 0x34, 0x48, 0x59,
-	0x70, 0x71, 0x21, 0x04, 0x49, 0x71, 0x87, 0x91, 0x17, 0x17, 0xbf, 0x27, 0xd4, 0xfc, 0xe0, 0xd4,
-	0xa2, 0xb2, 0xcc, 0xe4, 0x54, 0x21, 0x73, 0x2e, 0x76, 0x68, 0x08, 0x0b, 0x09, 0x63, 0x09, 0x03,
-	0x29, 0x71, 0x1c, 0xee, 0x4a, 0x82, 0xc4, 0x84, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x1e, 0x96,
-	0xf6, 0x4c, 0xa8, 0x01, 0x00, 0x00,
+	0xa2, 0x4a, 0x2b, 0x19, 0xb9, 0xb8, 0x83, 0x20, 0x32, 0x4e, 0xf9, 0x29, 0x95, 0x42, 0x62, 0x5c,
+	0x6c, 0x25, 0xf9, 0x05, 0x99, 0xc9, 0xc5, 0x12, 0x8c, 0x0a, 0xcc, 0x1a, 0x9c, 0x41, 0x50, 0x1e,
+	0x48, 0x3c, 0x31, 0xb9, 0x24, 0x33, 0x3f, 0x4f, 0x82, 0x49, 0x81, 0x11, 0x24, 0x0e, 0xe1, 0x09,
+	0x19, 0x72, 0xb1, 0x24, 0xe5, 0xa7, 0x54, 0x4a, 0x30, 0x2b, 0x30, 0x6b, 0x70, 0x1b, 0xc9, 0x42,
+	0x4c, 0x2f, 0xd6, 0x43, 0x32, 0x52, 0x0f, 0x44, 0xb8, 0xe6, 0x95, 0x14, 0x55, 0x06, 0x81, 0x95,
+	0x4a, 0x99, 0x73, 0x71, 0xc2, 0x85, 0x84, 0x04, 0xb8, 0x98, 0xb3, 0x53, 0x2b, 0x25, 0x18, 0xc1,
+	0x86, 0x82, 0x98, 0x42, 0x22, 0x5c, 0xac, 0x65, 0x89, 0x39, 0xa5, 0xa9, 0x50, 0x8b, 0x20, 0x1c,
+	0x2b, 0x26, 0x0b, 0x46, 0xa5, 0x56, 0x46, 0x2e, 0x7e, 0xa8, 0xc1, 0x41, 0xa9, 0xc5, 0x05, 0xf9,
+	0x79, 0xc5, 0xa9, 0x42, 0x16, 0x30, 0xd5, 0x8c, 0x60, 0x07, 0x28, 0xa1, 0x39, 0x00, 0xa6, 0x4e,
+	0x2f, 0x0c, 0xa4, 0x08, 0xe2, 0x0a, 0x88, 0x06, 0x29, 0x0b, 0x2e, 0x2e, 0x84, 0x20, 0x21, 0x77,
+	0xf0, 0x22, 0xb9, 0xc3, 0xc8, 0x89, 0x8b, 0x1d, 0x6a, 0xbc, 0x90, 0x39, 0x17, 0x3b, 0x34, 0x5c,
+	0x85, 0x84, 0xb1, 0xf8, 0x5d, 0x4a, 0x1c, 0x87, 0x7b, 0x92, 0x20, 0xe1, 0x6f, 0x0c, 0x08, 0x00,
+	0x00, 0xff, 0xff, 0xaa, 0xd4, 0xf0, 0x44, 0x9e, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -155,72 +154,72 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// IReleaseServiceClient is the client API for IReleaseService service.
+// ReleaseClient is the client API for Release service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type IReleaseServiceClient interface {
+type ReleaseClient interface {
 	Release(ctx context.Context, in *ReleaseBody, opts ...grpc.CallOption) (*ReleaseResponse, error)
 }
 
-type iReleaseServiceClient struct {
+type releaseClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewIReleaseServiceClient(cc *grpc.ClientConn) IReleaseServiceClient {
-	return &iReleaseServiceClient{cc}
+func NewReleaseClient(cc *grpc.ClientConn) ReleaseClient {
+	return &releaseClient{cc}
 }
 
-func (c *iReleaseServiceClient) Release(ctx context.Context, in *ReleaseBody, opts ...grpc.CallOption) (*ReleaseResponse, error) {
+func (c *releaseClient) Release(ctx context.Context, in *ReleaseBody, opts ...grpc.CallOption) (*ReleaseResponse, error) {
 	out := new(ReleaseResponse)
-	err := c.cc.Invoke(ctx, "/protos.IReleaseService/release", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/protos.Release/release", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// IReleaseServiceServer is the server API for IReleaseService service.
-type IReleaseServiceServer interface {
+// ReleaseServer is the server API for Release service.
+type ReleaseServer interface {
 	Release(context.Context, *ReleaseBody) (*ReleaseResponse, error)
 }
 
-// UnimplementedIReleaseServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedIReleaseServiceServer struct {
+// UnimplementedReleaseServer can be embedded to have forward compatible implementations.
+type UnimplementedReleaseServer struct {
 }
 
-func (*UnimplementedIReleaseServiceServer) Release(ctx context.Context, req *ReleaseBody) (*ReleaseResponse, error) {
+func (*UnimplementedReleaseServer) Release(ctx context.Context, req *ReleaseBody) (*ReleaseResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Release not implemented")
 }
 
-func RegisterIReleaseServiceServer(s *grpc.Server, srv IReleaseServiceServer) {
-	s.RegisterService(&_IReleaseService_serviceDesc, srv)
+func RegisterReleaseServer(s *grpc.Server, srv ReleaseServer) {
+	s.RegisterService(&_Release_serviceDesc, srv)
 }
 
-func _IReleaseService_Release_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Release_Release_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReleaseBody)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(IReleaseServiceServer).Release(ctx, in)
+		return srv.(ReleaseServer).Release(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.IReleaseService/Release",
+		FullMethod: "/protos.Release/Release",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IReleaseServiceServer).Release(ctx, req.(*ReleaseBody))
+		return srv.(ReleaseServer).Release(ctx, req.(*ReleaseBody))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _IReleaseService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "protos.IReleaseService",
-	HandlerType: (*IReleaseServiceServer)(nil),
+var _Release_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "protos.Release",
+	HandlerType: (*ReleaseServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "release",
-			Handler:    _IReleaseService_Release_Handler,
+			Handler:    _Release_Release_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

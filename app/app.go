@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/issue/library/container"
 	"gitlab.orayer.com/golang/issue/service"
 	"os"
@@ -20,6 +21,10 @@ func New (configFile string) *App {
 	app.Use(service.NewIssuer())
 	app.Use(service.NewHttpReceiver())
 	//app.Use(service.NewRpcReceiver())
+
+	if gin.IsDebugging() {
+		app.Use(service.NewPProf())
+	}
 
 	return app
 }

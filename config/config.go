@@ -13,6 +13,7 @@ type ServerConfig struct {
 	Issuer       IssuerConfig
 	ReceiverHttp ReceiverHttpConfig `toml:"receiver_http"`
 	ReceiverRpc  ReceiverRpcConfig  `toml:"receiver_rpc"`
+	PProf        PProfConfig
 }
 
 type IssuerConfig struct {
@@ -27,6 +28,10 @@ type ReceiverHttpConfig struct {
 }
 
 type ReceiverRpcConfig struct {
+	Address string
+}
+
+type PProfConfig struct {
 	Address string
 }
 

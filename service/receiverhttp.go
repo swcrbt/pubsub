@@ -1,22 +1,23 @@
 package service
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/errors"
-	"gitlab.orayer.com/golang/server"
 	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/server"
 	"net/http"
 )
 
 type ReleaseBody struct {
-	// 推送类型
+	// 推送ID
+	Topics []string `from:"topics" json:"topics" binding:"required"`
+
+	// 内容行为
 	Action string `from:"action" json:"action" binding:"required"`
 
-	// 推送ID
-	UniqIds []string `from:"uniqids" json:"uniqids" binding:"required"`
-
-	// 推送内容
-	Data interface{} `from:"data" json:"data" binding:"required"`
+	// 内容
+	Body interface{} `from:"body" json:"body"`
 }
 
 type HttpReceiver struct {
@@ -31,10 +32,7 @@ func NewHttpReceiver() *HttpReceiver {
 }
 
 func (rec *HttpReceiver) Run() error {
-	rev, err := server.Endless().NewHttpServer()
-	if (err != nil) {
-		return err
-	}
+	rev := server.NewHttpServer()
 
 	gin.SetMode(container.Mgr.Config.Server.Mode)
 	rev.Router.Use(gin.Logger(), gin.Recovery())
@@ -69,10 +67,18 @@ func (rec *HttpReceiver) Stop() error  {
 func receiverHandler(c *gin.Context) {
 	var params ReleaseBody
 
+	defer c.Request.Body.Close()
+
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, errors.New("receiverhttp/params_error", "invalid request payload"))
 		return
 	}
 
-	container.Mgr.Dispatcher.Push(params.Action, params.UniqIds, params.Data)
+	result := container.Mgr.Dispatcher.Publish(params.Topics, params.Action, params.Body)
+
+	fmt.Println(result)
+
+	c.JSON(http.StatusOK, result)
+	return
 }
+

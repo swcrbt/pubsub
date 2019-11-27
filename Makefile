@@ -14,7 +14,7 @@ run:
 
 start: build
 	chmod -R +x ./dist/issue
-	./dist/issue start
+	GODEBUG=gctrace=1 ./dist/issue start
 
 clean:
 	rm -rf dist

@@ -9,15 +9,13 @@ import (
 )
 
 type AuthRecord struct {
-	Action string `json:"action" binding:"required"`
-	UniqId string `json:"uniqid" binding:"required"`
+	Topic  string `json:"topic" binding:"required"`
 	Secret string `json:"secret" binding:"required"`
 }
 
 type StorageRecord struct {
 	CryptoType string `json:"cryptotype"`
-	Action     string `json:"action"`
-	UniqId     string `json:"uniqid"`
+	Topic      string `json:"topic"`
 	Secret     string `json:"secret"`
 }
 
@@ -50,7 +48,7 @@ func IssueAuth() gin.HandlerFunc {
 			return
 		}
 
-		authKey := "issue_auth_key_" + authRecord.Action + "_" + authRecord.UniqId
+		authKey := "issue_auth_key_" + authRecord.Topic
 		storageData, err := container.Mgr.Storager.Get(authKey)
 		if err != nil {
 			c.AbortWithStatus(http.StatusNotFound)

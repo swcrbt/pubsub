@@ -1,19 +1,20 @@
 package service
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"gitlab.orayer.com/golang/server"
 	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/issue/library/dispatcher"
 	"gitlab.orayer.com/golang/issue/library/websocket"
 	"gitlab.orayer.com/golang/issue/middleware"
+	"gitlab.orayer.com/golang/server"
 	"net/http"
 	"time"
 )
 
 type Issuer struct {
 	handler func(c *gin.Context)
-	server *server.HttpServer
+	server  *server.HttpServer
 }
 
 func NewIssuer() *Issuer {
@@ -23,14 +24,7 @@ func NewIssuer() *Issuer {
 }
 
 func (iss *Issuer) Run() error {
-
-	//rev := gin.Default()
-	//rev.GET("/subscribe", iss.handler)
-
-	rev, err := server.Endless().NewHttpServer()
-	if (err != nil) {
-		return err
-	}
+	rev := server.NewHttpServer()
 
 	gin.SetMode(container.Mgr.Config.Server.Mode)
 	rev.Router.Use(gin.Logger(), gin.Recovery(), middleware.IssueAuth())
@@ -44,10 +38,6 @@ func (iss *Issuer) Run() error {
 		if err := rev.Start(); err != nil {
 			container.Mgr.Logger.Printf("\"%s\" Server error: %v\n", iss.GetName(), err)
 		}
-
-		/*if err := rev.Run(":" + strconv.Itoa(container.Mgr.Config.Server.Issuer.Port)); err != nil {
-			container.Mgr.Logger.Printf("\"%s\" Server error: %v\n", iss.GetName(), err)
-		}*/
 	}()
 
 	iss.server = rev
@@ -59,7 +49,7 @@ func (iss *Issuer) GetName() string {
 	return "issuer"
 }
 
-func (rec *Issuer) Stop() error  {
+func (rec *Issuer) Stop() error {
 	if rec.server != nil {
 		return rec.server.Shutdown()
 	}
@@ -68,11 +58,9 @@ func (rec *Issuer) Stop() error  {
 
 func issuerHandler(c *gin.Context) {
 	var (
-		dataChan     <-chan []byte
 		err          error
 		conn         *websocket.Connection
 		timeoutCount int = 0
-		index        int = 0
 	)
 
 	auth, ok := c.Get(middleware.AuthInfoKey)
@@ -87,20 +75,23 @@ func issuerHandler(c *gin.Context) {
 		return
 	}
 
-	dataChan, index = container.Mgr.Dispatcher.Subscribe(auth.(middleware.StorageRecord).Action, auth.(middleware.StorageRecord).UniqId)
+	topic := auth.(middleware.StorageRecord).Topic
+	channel, cid:= container.Mgr.Dispatcher.Subscribe(topic)
 
 	// 发送心跳包
 	go func() {
 		for {
 			if timeoutCount >= container.Mgr.Config.Server.Issuer.HeartbeatTimeout {
-				conn.Close()
-				container.Mgr.Dispatcher.UnSubscribe(auth.(middleware.StorageRecord).Action, auth.(middleware.StorageRecord).UniqId, index)
+				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" timeout\n", topic, cid)
+				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
+				//conn.Close()
 				return
 			}
 
-			if err = conn.WriteMessage([]byte("_heartbeat_")); err != nil {
-				fmt.Println(err)
-				container.Mgr.Dispatcher.UnSubscribe(auth.(middleware.StorageRecord).Action, auth.(middleware.StorageRecord).UniqId, index)
+			hb, _ := json.Marshal(dispatcher.PublishRecord{ID: 0, Action: "heartbeat"})
+			if err = conn.WriteMessage(hb); err != nil {
+				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" write heartbeat failed: %v\n", topic, cid, err)
+				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
 				return
 			}
 
@@ -109,23 +100,41 @@ func issuerHandler(c *gin.Context) {
 		}
 	}()
 
-	// 检测心跳包回应
+	// 回应
 	go func() {
 		for {
 			data, err := conn.ReadMessage()
 			if err != nil {
+				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" read message failed: %v\n", topic, cid, err)
 				return
 			}
 
-			if string(data) == "NOP" {
-				timeoutCount = 0;
+			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" read message: %s\n", topic, cid, string(data))
+
+			var resp *dispatcher.PublishRecord
+			err = json.Unmarshal(data, &resp)
+			if err != nil {
+				continue
 			}
+
+			if resp.ID == 0 {
+				timeoutCount = 0;
+				continue
+			}
+
+			container.Mgr.Dispatcher.Feedback(topic, cid, resp)
 		}
 	}()
 
 	// 下发由调度器来的数据
 	for {
-		if err = conn.WriteMessage(<-dataChan); err != nil {
+		data, ok := <-channel
+		if (!ok) {
+			break
+		}
+
+		if err = conn.WriteMessage(data); err != nil {
+			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" release data failed: %v\n", topic, cid, err)
 			break
 		}
 	}

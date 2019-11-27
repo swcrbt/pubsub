@@ -30,7 +30,7 @@ func (rec *RpcReceiver) Run() error {
 
 	grpcServer := grpc.NewServer()
 
-	protos.RegisterIReleaseServiceServer(grpcServer, rec.handler)
+	protos.RegisterReleaseServer(grpcServer, rec.handler)
 
 	go func() {
 		container.Mgr.Logger.Printf("\"%s\" Server Run At: \"%s\"\n", rec.GetName(), container.Mgr.Config.Server.ReceiverRpc.Address)
@@ -57,7 +57,5 @@ func (rec *RpcReceiver) Stop() error {
 }
 
 func (ser *ReleaseService) Release(ctx context.Context, req *protos.ReleaseBody) (*protos.ReleaseResponse, error) {
-	container.Mgr.Dispatcher.Push(req.Action, req.UniqIds, req.Data)
-
-	return &protos.ReleaseResponse{Value: map[string]string{}}, nil
+	return &protos.ReleaseResponse{Value: container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)}, nil
 }
