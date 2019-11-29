@@ -11,18 +11,18 @@ import (
 	"strconv"
 )
 
-var _ = Describe("receiver-http", func() {
+var _ = Describe("Publisher-http", func() {
 	It("Test http release", func() {
-		httpServer := service.NewHttpReceiver()
+		httpServer := service.NewHttpPublisher()
 		err := httpServer.Run();
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(httpServer.GetName()).To(Equal("receiver-http"))
+		Expect(httpServer.GetName()).To(Equal("publisher-http"))
 
-		body := service.ReleaseBody{
-			Action:  "pgygame",
-			UniqIds: []string{"1", "2", "3"},
-			Data:    map[string]string{"a": "b", "b": "c"},
+		body := service.PublishBody{
+			Topics: []string{"pgygame_173060"},
+			Action: "xxx",
+			Body:   map[string]string{"a": "b", "b": "c"},
 		}
 
 		data, err := json.Marshal(body)
@@ -30,7 +30,7 @@ var _ = Describe("receiver-http", func() {
 
 		req := bytes.NewBuffer(data)
 
-		resp, err := http.Post("http://127.0.0.1:"+strconv.Itoa(container.Mgr.Config.Server.ReceiverHttp.Port)+"/release",
+		resp, err := http.Post("http://127.0.0.1:"+strconv.Itoa(container.Mgr.Config.Server.PublisherHttp.Port)+"/publish",
 			"application/json", req)
 		Expect(err).NotTo(HaveOccurred())
 

@@ -14,5 +14,5 @@ var _ = BeforeSuite(func() {
 
 func TestService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Issue Service")
+	RunSpecs(t, "subscribe Service")
 }

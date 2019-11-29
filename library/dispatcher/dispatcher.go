@@ -5,30 +5,24 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"github.com/google/uuid"
 )
 
 type PublishRecord struct {
-	ID     uint        `json:"id"`
+	ID     string      `json:"id"`
 	Action string      `json:"action" binding:"required"`
 	Body   interface{} `json:"body"`
 }
 
 type Dispatcher struct {
-	pool map[string]map[uint]chan []byte
-	back map[uint]map[string]map[uint]chan *PublishRecord
-
-	mid    uint
-	cid    uint
-	mMutex sync.Mutex
-	cMutex sync.Mutex
+	pool map[string]map[string]chan []byte
+	back map[string]map[string]map[string]chan *PublishRecord
 }
 
 func New() *Dispatcher {
 	return &Dispatcher{
-		pool: make(map[string]map[uint]chan []byte, 0xffff),
-		back: make(map[uint]map[string]map[uint]chan *PublishRecord, 0xffff),
-		mid:  0,
-		cid:  0,
+		pool: make(map[string]map[string]chan []byte, 0xffff),
+		back: make(map[string]map[string]map[string]chan *PublishRecord, 0xffff),
 	}
 }
 
@@ -43,7 +37,7 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 		result[topic] = 0
 	}
 
-	mid := dis.GetMId()
+	mid := uuid.New().String()
 	resp := PublishRecord{ID: mid, Action: action, Body: body}
 	respData, err := json.Marshal(resp)
 	if err != nil {
@@ -52,7 +46,7 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 
 	// 初始化回调池
 	if _, ok := dis.back[mid]; !ok {
-		dis.back[mid] = map[string]map[uint]chan *PublishRecord{}
+		dis.back[mid] = map[string]map[string]chan *PublishRecord{}
 	}
 
 	// 下发数据
@@ -61,7 +55,7 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 			for cid, listener := range listeners {
 				if listener != nil {
 					if _, ok := dis.back[mid][topic]; !ok {
-						dis.back[mid][topic] = map[uint]chan *PublishRecord{}
+						dis.back[mid][topic] = map[string]chan *PublishRecord{}
 					}
 
 					callbacker := make(chan *PublishRecord, 1)
@@ -73,24 +67,32 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 		}
 	}
 
+	wg := &sync.WaitGroup{}
+
 	// 等待数据回调
 	for topic, callbackers := range dis.back[mid] {
 		for cid, callbacker := range callbackers {
-			timer := time.NewTimer(time.Second * 10)
-			select {
-			case data := <-callbacker:
-				fmt.Printf("%s: %v -- %v\n", topic, cid, data)
-			case <-timer.C:
-				fmt.Printf("timeout C %s: %v\n", topic, cid)
-				break
-			}
+			wg.Add(1)
+			go func(topic string, cid string, callbacker chan *PublishRecord) {
+				timer := time.NewTimer(time.Second * 5)
+				select {
+				case data := <-callbacker:
+					result[topic] ++
+					fmt.Printf("back %s[%v] -- %v\n", topic, cid, data)
+				case <-timer.C:
+					fmt.Printf("back timeout %s[%v] \n", topic, cid)
+				}
+				wg.Done()
+			}(topic, cid, callbacker)
 		}
 	}
+
+	wg.Wait()
 
 	return result
 }
 
-func (dis *Dispatcher) Feedback(topic string, cid uint, data *PublishRecord) {
+func (dis *Dispatcher) Feedback(topic string, cid string, data *PublishRecord) {
 	if _, ok := dis.back[data.ID]; !ok {
 		return
 	}
@@ -99,18 +101,20 @@ func (dis *Dispatcher) Feedback(topic string, cid uint, data *PublishRecord) {
 		return
 	}
 
+	fmt.Printf("feedback [%v] %s[%v] -- %v\n", data.ID, topic, cid, data)
+
 	if callbacker, ok := dis.back[data.ID][topic][cid]; ok {
 		callbacker <- data
-		close(callbacker)
+		delete(dis.back[data.ID][topic], cid)
 	}
 }
 
-func (dis *Dispatcher) Subscribe(topic string) (<-chan []byte, uint) {
+func (dis *Dispatcher) Subscribe(topic string) (<-chan []byte, string) {
 	listener := make(chan []byte, 100)
-	cid := dis.GetCId()
+	cid := uuid.New().String()
 
 	if _, ok := dis.pool[topic]; !ok {
-		dis.pool[topic] = map[uint]chan []byte{}
+		dis.pool[topic] = map[string]chan []byte{}
 	}
 
 	dis.pool[topic][cid] = listener
@@ -120,7 +124,7 @@ func (dis *Dispatcher) Subscribe(topic string) (<-chan []byte, uint) {
 	return listener, cid
 }
 
-func (dis *Dispatcher) UnSubscribe(topic string, cid uint) {
+func (dis *Dispatcher) UnSubscribe(topic string, cid string) {
 	if _, ok := dis.pool[topic]; !ok {
 		return
 	}
@@ -134,26 +138,4 @@ func (dis *Dispatcher) UnSubscribe(topic string, cid uint) {
 	delete(dis.pool[topic], cid)
 
 	fmt.Printf("pool: %v\n", dis.pool)
-}
-
-func (dis *Dispatcher) GetMId() uint {
-	dis.mMutex.Lock()
-
-	id := dis.mid + 1
-	dis.mid = id
-
-	dis.mMutex.Unlock()
-
-	return id
-}
-
-func (dis *Dispatcher) GetCId() uint {
-	dis.cMutex.Lock()
-
-	id := dis.cid + 1
-	dis.cid = id
-
-	dis.cMutex.Unlock()
-
-	return id
 }

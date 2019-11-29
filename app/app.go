@@ -17,10 +17,12 @@ func New (configFile string) *App {
 		panic(err)
 	}
 
+	gin.SetMode(container.Mgr.Config.Server.Mode)
+
 	app := &App{}
-	app.Use(service.NewIssuer())
-	app.Use(service.NewHttpReceiver())
-	//app.Use(service.NewRpcReceiver())
+	app.Use(service.NewSubscriber())
+	app.Use(service.NewHttpPublisher())
+	app.Use(service.NewRpcPublisher())
 
 	if gin.IsDebugging() {
 		app.Use(service.NewPProf())

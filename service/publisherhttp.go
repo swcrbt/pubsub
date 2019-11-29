@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/errors"
 	"gitlab.orayer.com/golang/issue/library/container"
@@ -9,7 +8,7 @@ import (
 	"net/http"
 )
 
-type ReleaseBody struct {
+type PublishBody struct {
 	// 推送ID
 	Topics []string `from:"topics" json:"topics" binding:"required"`
 
@@ -20,28 +19,27 @@ type ReleaseBody struct {
 	Body interface{} `from:"body" json:"body"`
 }
 
-type HttpReceiver struct {
+type HttpPublisher struct {
 	handler func(c *gin.Context)
 	server *server.HttpServer
 }
 
-func NewHttpReceiver() *HttpReceiver {
-	return &HttpReceiver{
-		handler: receiverHandler,
+func NewHttpPublisher() *HttpPublisher {
+	return &HttpPublisher{
+		handler: publisherHandler,
 	}
 }
 
-func (rec *HttpReceiver) Run() error {
+func (rec *HttpPublisher) Run() error {
 	rev := server.NewHttpServer()
 
-	gin.SetMode(container.Mgr.Config.Server.Mode)
 	rev.Router.Use(gin.Logger(), gin.Recovery())
 
-	rev.Router.POST("/release", rec.handler)
-	rev.Port = container.Mgr.Config.Server.ReceiverHttp.Port
+	rev.Router.POST("/publish", rec.handler)
+	rev.Port = container.Mgr.Config.Server.PublisherHttp.Port
 
 	go func() {
-		container.Mgr.Logger.Printf("\"%s\" Server Run At: \"%d\"\n", rec.GetName(), container.Mgr.Config.Server.ReceiverHttp.Port)
+		container.Mgr.Logger.Printf("\"%s\" Server Run At: \"%d\"\n", rec.GetName(), container.Mgr.Config.Server.PublisherHttp.Port)
 
 		if err := rev.Start(); err != nil {
 			container.Mgr.Logger.Printf("\"%s\" Server error: %v\n", rec.GetName(), err)
@@ -53,30 +51,28 @@ func (rec *HttpReceiver) Run() error {
 	return nil
 }
 
-func (rec *HttpReceiver) GetName() string {
-	return "receiver-http"
+func (rec *HttpPublisher) GetName() string {
+	return "publisher-http"
 }
 
-func (rec *HttpReceiver) Stop() error  {
+func (rec *HttpPublisher) Stop() error  {
 	if rec.server != nil {
 		return rec.server.Shutdown()
 	}
 	return nil
 }
 
-func receiverHandler(c *gin.Context) {
-	var params ReleaseBody
+func publisherHandler(c *gin.Context) {
+	var params PublishBody
 
 	defer c.Request.Body.Close()
 
 	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, errors.New("receiverhttp/params_error", "invalid request payload"))
+		c.JSON(http.StatusBadRequest, errors.New("Publisherhttp/params_error", "invalid request payload"))
 		return
 	}
 
 	result := container.Mgr.Dispatcher.Publish(params.Topics, params.Action, params.Body)
-
-	fmt.Println(result)
 
 	c.JSON(http.StatusOK, result)
 	return

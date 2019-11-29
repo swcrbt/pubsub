@@ -50,7 +50,7 @@ func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
 	case <-conn.closeChan:
-		close(conn.inChan)
+		//close(conn.inChan)
 		err = errors.New("connection is closeed")
 	}
 	return
@@ -60,7 +60,7 @@ func (conn *Connection) WriteMessage(data []byte) (err error) {
 	select {
 	case conn.outChan <- data:
 	case <-conn.closeChan:
-		close(conn.outChan)
+		//close(conn.outChan)
 		err = errors.New("connection is closeed")
 	}
 	return

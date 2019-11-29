@@ -12,28 +12,27 @@ import (
 	"time"
 )
 
-type Issuer struct {
+type Subscriber struct {
 	handler func(c *gin.Context)
 	server  *server.HttpServer
 }
 
-func NewIssuer() *Issuer {
-	return &Issuer{
-		handler: issuerHandler,
+func NewSubscriber() *Subscriber {
+	return &Subscriber{
+		handler: subscriberHandler,
 	}
 }
 
-func (iss *Issuer) Run() error {
+func (iss *Subscriber) Run() error {
 	rev := server.NewHttpServer()
 
-	gin.SetMode(container.Mgr.Config.Server.Mode)
 	rev.Router.Use(gin.Logger(), gin.Recovery(), middleware.IssueAuth())
 
 	rev.Router.GET("/subscribe", iss.handler)
-	rev.Port = container.Mgr.Config.Server.Issuer.Port
+	rev.Port = container.Mgr.Config.Server.Subscriber.Port
 
 	go func() {
-		container.Mgr.Logger.Printf("\"%s\" Server Run At: \"%d\"\n", iss.GetName(), container.Mgr.Config.Server.Issuer.Port)
+		container.Mgr.Logger.Printf("\"%s\" Server Run At: \"%d\"\n", iss.GetName(), container.Mgr.Config.Server.Subscriber.Port)
 
 		if err := rev.Start(); err != nil {
 			container.Mgr.Logger.Printf("\"%s\" Server error: %v\n", iss.GetName(), err)
@@ -45,18 +44,18 @@ func (iss *Issuer) Run() error {
 	return nil
 }
 
-func (iss *Issuer) GetName() string {
-	return "issuer"
+func (iss *Subscriber) GetName() string {
+	return "subscriber"
 }
 
-func (rec *Issuer) Stop() error {
+func (rec *Subscriber) Stop() error {
 	if rec.server != nil {
 		return rec.server.Shutdown()
 	}
 	return nil
 }
 
-func issuerHandler(c *gin.Context) {
+func subscriberHandler(c *gin.Context) {
 	var (
 		err          error
 		conn         *websocket.Connection
@@ -81,14 +80,16 @@ func issuerHandler(c *gin.Context) {
 	// 发送心跳包
 	go func() {
 		for {
-			if timeoutCount >= container.Mgr.Config.Server.Issuer.HeartbeatTimeout {
+			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" count:%d\n", topic, cid, timeoutCount)
+
+			if timeoutCount >= container.Mgr.Config.Server.Subscriber.HeartbeatTimeout {
 				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" timeout\n", topic, cid)
 				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
-				//conn.Close()
+				conn.Close()
 				return
 			}
 
-			hb, _ := json.Marshal(dispatcher.PublishRecord{ID: 0, Action: "heartbeat"})
+			hb, _ := json.Marshal(dispatcher.PublishRecord{ID: "0", Action: "heartbeat"})
 			if err = conn.WriteMessage(hb); err != nil {
 				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" write heartbeat failed: %v\n", topic, cid, err)
 				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
@@ -96,7 +97,7 @@ func issuerHandler(c *gin.Context) {
 			}
 
 			timeoutCount++
-			time.Sleep(container.Mgr.Config.Server.Issuer.HeartbeatInterval * time.Second)
+			time.Sleep(container.Mgr.Config.Server.Subscriber.HeartbeatInterval * time.Second)
 		}
 	}()
 
@@ -117,7 +118,7 @@ func issuerHandler(c *gin.Context) {
 				continue
 			}
 
-			if resp.ID == 0 {
+			if resp.ID == "0" || resp.ID == "" {
 				timeoutCount = 0;
 				continue
 			}

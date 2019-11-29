@@ -2,7 +2,7 @@
 
 ### 命令
 ```
-./issue start|restart|stop 
+./pubsub start|restart|stop 
 
 -c 配置文件
 -d 后台运行
@@ -24,10 +24,10 @@ protoc --go_out=plugins=grpc:. ./protos/*.proto
 http:
 
 ``` go
-body := service.ReleaseBody{
-    Action:  "xxx",
-    UniqIds: []string{"x"},
-    Data:    map[string]string{"x": "xxx"},
+body := service.PublishBody{
+    Topics: []string{"pgygame_173060"},
+    Action: "xxx",
+    Body:   map[string]string{"a": "b", "b": "c"},
 }
 
 data, err := json.Marshal(body)
@@ -48,20 +48,20 @@ if err != nil {
     panic(err)
 }
 
-cli := protos.NewIReleaseServiceClient(con)
+cli := protos.NewPublishClient(con)
 
-resp, err = cli.Release(
+_, err = cli.Release(
     context.Background(),
-    &protos.ReleaseBody{
-        Action:"xxx",
-        UniqIds:[]string{"x"},
-        Data: map[string]string{"x": "xxxx"},
+    &protos.PublishBody{
+        Topics: []string{"pgygame_173060"},
+        Action: "xxx",
+        Body:   map[string]string{"a": "b", "b": "c"},
     })
 ```
 
 ## 客户端
 
-服务器默认会有30秒间隔的保活心跳包检测，客户端收到 "\_heartbeat\_" 消息时需回应 "NOP" 消息证明客户端存活
+服务器默认会有30秒间隔的保活心跳包检测，客户端收到 { "action": "heartbeat" } 消息时需回应 { "action": "nop" } 消息证明客户端存活
 服务器会在检测5次都未收到客户端响应之后断开连接
 客户端可以在1分钟内未收到服务器的心跳包断开之前的连接重新连接
 

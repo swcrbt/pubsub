@@ -10,25 +10,25 @@ import (
 	"google.golang.org/grpc"
 )
 
-var _ = Describe("receiver-rpc", func() {
+var _ = Describe("Publisher-rpc", func() {
 	It("Test rpc release", func() {
-		rpcServer := service.NewRpcReceiver()
+		rpcServer := service.NewRpcPublisher()
 		err := rpcServer.Run();
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(rpcServer.GetName()).To(Equal("receiver-rpc"))
+		Expect(rpcServer.GetName()).To(Equal("publisher-rpc"))
 
-		con, err := grpc.Dial(container.Mgr.Config.Server.ReceiverRpc.Address, grpc.WithInsecure())
+		con, err := grpc.Dial(container.Mgr.Config.Server.PublisherRpc.Address, grpc.WithInsecure())
 		Expect(err).NotTo(HaveOccurred())
 
-		cli := protos.NewIReleaseServiceClient(con)
+		cli := protos.NewPublishClient(con)
 
 		_, err = cli.Release(
 			context.Background(),
-			&protos.ReleaseBody{
-				Action:"pgygame",
-				UniqIds:[]string{"1","2","3"},
-				Data: map[string]string{"a": "b", "b": "c"},
+			&protos.PublishBody{
+				Topics: []string{"pgygame_173060"},
+				Action: "xxx",
+				Body:   map[string]string{"a": "b", "b": "c"},
 			})
 
 		Expect(err).NotTo(HaveOccurred())

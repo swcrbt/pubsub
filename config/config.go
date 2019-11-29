@@ -9,25 +9,25 @@ import (
 
 // ServerConfig server config
 type ServerConfig struct {
-	Mode         string
-	Issuer       IssuerConfig
-	ReceiverHttp ReceiverHttpConfig `toml:"receiver_http"`
-	ReceiverRpc  ReceiverRpcConfig  `toml:"receiver_rpc"`
-	PProf        PProfConfig
+	Mode          string
+	Subscriber    SubscriberConfig
+	PublisherHttp PublisherHttpConfig `toml:"publisher_http"`
+	PublisherRpc  PublisherRpcConfig  `toml:"publisher_rpc"`
+	PProf         PProfConfig
 }
 
-type IssuerConfig struct {
+type SubscriberConfig struct {
 	Port int
 
 	HeartbeatInterval time.Duration `toml:"heartbeat_interval"`
 	HeartbeatTimeout  int           `toml:"heartbeat_timeout"`
 }
 
-type ReceiverHttpConfig struct {
+type PublisherHttpConfig struct {
 	Port int
 }
 
-type ReceiverRpcConfig struct {
+type PublisherRpcConfig struct {
 	Address string
 }
 
