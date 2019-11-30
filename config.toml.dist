@@ -1,24 +1,32 @@
+# gin 服务启动模式 debug|test|release
 [server]
 mode = "release"
 
+# 订阅服务
 [server.subscriber]
 port = 9999
-heartbeat_interval = 30
-heartbeat_timeout = 5
+# 读超时，ping-pong检测
+read_deadline = 30
+write_deadline = 30
 
+# 发布HTTP服务
 [server.publisher_http]
 port = 9992
 
+# 发布RPC服务
 [server.publisher_rpc]
 address = ":9993"
 
+# ppprof 服务端口，分析查看内存CPU使用
 [server.pprof]
 address = ":6060"
 
+# 存储验证 redis
 [storage]
-address = "47.98.169.59:6379"
-password = "56ff169d885f"
+address = ""
+password = ""
 
+# 日志，目前只支持stdout和file。file有目录时，目录需存在
 [logger]
 type = "stdout"
 target = "./"
