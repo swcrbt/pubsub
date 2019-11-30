@@ -9,7 +9,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	// 允许跨域
-	CheckOrigin:func(r *http.Request) bool{
+	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 }
@@ -24,7 +24,7 @@ type Connection struct {
 	isClosed bool       // 防止closeChan被关闭多次
 }
 
-func New(w http.ResponseWriter , r *http.Request) (conn *Connection, err error) {
+func New(w http.ResponseWriter, r *http.Request) (conn *Connection, err error) {
 	var wsConn *websocket.Conn
 
 	if wsConn, err = upgrader.Upgrade(w, r, nil); err != nil {
@@ -44,6 +44,10 @@ func New(w http.ResponseWriter , r *http.Request) (conn *Connection, err error) 
 	go conn.writeLoop()
 
 	return conn, nil
+}
+
+func (conn *Connection) GetWsConn() *websocket.Conn {
+	return conn.wsConnect
 }
 
 func (conn *Connection) ReadMessage() (data []byte, err error) {
@@ -81,14 +85,15 @@ func (conn *Connection) Close() {
 // 内部实现
 func (conn *Connection) readLoop() {
 	var (
-		data []byte
-		err  error
+		data        []byte
+		err         error
 	)
 
 	for {
 		if _, data, err = conn.wsConnect.ReadMessage(); err != nil {
 			goto ERR
 		}
+
 		//阻塞在这里，等待inChan有空闲位置
 		select {
 		case conn.inChan <- data:

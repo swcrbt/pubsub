@@ -14,7 +14,7 @@ func init() {
 		Use:   "restart",
 		Short: "Restart service",
 		Run: func(cmd *cobra.Command, args []string) {
-			/*if err := server.Endless().Reload(); err != nil {
+			/*if err := App.Reload(); err != nil {
 				cmd.Printf("reload services failed: %v\n", err)
 			}*/
 		},

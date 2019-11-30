@@ -26,17 +26,17 @@ const (
 	AuthInfoKey = "_AUTH_"
 )
 
-func IssueAuth() gin.HandlerFunc {
+func SubAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.Query("key")
 		if key == "" {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
 		baseData, err := base64.StdEncoding.DecodeString(key)
 		if err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
@@ -44,19 +44,19 @@ func IssueAuth() gin.HandlerFunc {
 		var storageRecord StorageRecord
 
 		if err := json.Unmarshal(baseData, &authRecord); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
-		authKey := "issue_auth_key_" + authRecord.Topic
+		authKey := "sub_auth_key_" + authRecord.Topic
 		storageData, err := container.Mgr.Storager.Get(authKey)
 		if err != nil {
-			c.AbortWithStatus(http.StatusNotFound)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
 		if err := json.Unmarshal(storageData, &storageRecord); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 
@@ -66,7 +66,7 @@ func IssueAuth() gin.HandlerFunc {
 			fallthrough
 		default:
 			if storageRecord.Secret != authRecord.Secret {
-				c.AbortWithStatus(http.StatusBadRequest)
+				c.AbortWithStatus(http.StatusForbidden)
 				return
 			}
 

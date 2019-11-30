@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/issue/library/container"
 	"gitlab.orayer.com/golang/issue/library/dispatcher"
@@ -26,7 +27,7 @@ func NewSubscriber() *Subscriber {
 func (iss *Subscriber) Run() error {
 	rev := server.NewHttpServer()
 
-	rev.Router.Use(gin.Logger(), gin.Recovery(), middleware.IssueAuth())
+	rev.Router.Use(gin.Logger(), gin.Recovery(), middleware.SubAuth())
 
 	rev.Router.GET("/subscribe", iss.handler)
 	rev.Port = container.Mgr.Config.Server.Subscriber.Port
@@ -57,14 +58,13 @@ func (rec *Subscriber) Stop() error {
 
 func subscriberHandler(c *gin.Context) {
 	var (
-		err          error
-		conn         *websocket.Connection
-		timeoutCount int = 0
+		err  error
+		conn *websocket.Connection
 	)
 
 	auth, ok := c.Get(middleware.AuthInfoKey)
 	if !ok {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 
@@ -74,52 +74,28 @@ func subscriberHandler(c *gin.Context) {
 		return
 	}
 
+	ws := conn.GetWsConn()
+	_ = ws.SetReadDeadline(time.Now().Add(time.Second * container.Mgr.Config.Server.Subscriber.ReadDeadline))
+	_ = ws.SetWriteDeadline(time.Now().Add(time.Second * container.Mgr.Config.Server.Subscriber.WriteDeadline))
+
 	topic := auth.(middleware.StorageRecord).Topic
-	channel, cid:= container.Mgr.Dispatcher.Subscribe(topic)
-
-	// 发送心跳包
-	go func() {
-		for {
-			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" count:%d\n", topic, cid, timeoutCount)
-
-			if timeoutCount >= container.Mgr.Config.Server.Subscriber.HeartbeatTimeout {
-				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" timeout\n", topic, cid)
-				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
-				conn.Close()
-				return
-			}
-
-			hb, _ := json.Marshal(dispatcher.PublishRecord{ID: "0", Action: "heartbeat"})
-			if err = conn.WriteMessage(hb); err != nil {
-				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" write heartbeat failed: %v\n", topic, cid, err)
-				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
-				return
-			}
-
-			timeoutCount++
-			time.Sleep(container.Mgr.Config.Server.Subscriber.HeartbeatInterval * time.Second)
-		}
-	}()
+	channel, cid := container.Mgr.Dispatcher.Subscribe(topic)
 
 	// 回应
 	go func() {
 		for {
 			data, err := conn.ReadMessage()
 			if err != nil {
+				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
 				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" read message failed: %v\n", topic, cid, err)
 				return
 			}
 
-			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" read message: %s\n", topic, cid, string(data))
+			fmt.Printf("topic:\"%s\" cid:\"%v\" read message: %s\n", topic, cid, string(data))
 
 			var resp *dispatcher.PublishRecord
 			err = json.Unmarshal(data, &resp)
 			if err != nil {
-				continue
-			}
-
-			if resp.ID == "0" || resp.ID == "" {
-				timeoutCount = 0;
 				continue
 			}
 

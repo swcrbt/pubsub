@@ -1,0 +1,24 @@
+[server]
+mode = "release"
+
+[server.subscriber]
+port = 9999
+heartbeat_interval = 30
+heartbeat_timeout = 5
+
+[server.publisher_http]
+port = 9992
+
+[server.publisher_rpc]
+address = ":9993"
+
+[server.pprof]
+address = ":6060"
+
+[storage]
+address = "47.98.169.59:6379"
+password = "56ff169d885f"
+
+[logger]
+type = "stdout"
+target = "./"

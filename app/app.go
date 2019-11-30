@@ -22,7 +22,7 @@ func New (configFile string) *App {
 	app := &App{}
 	app.Use(service.NewSubscriber())
 	app.Use(service.NewHttpPublisher())
-	app.Use(service.NewRpcPublisher())
+	//app.Use(service.NewRpcPublisher())
 
 	if gin.IsDebugging() {
 		app.Use(service.NewPProf())

@@ -19,8 +19,8 @@ type ServerConfig struct {
 type SubscriberConfig struct {
 	Port int
 
-	HeartbeatInterval time.Duration `toml:"heartbeat_interval"`
-	HeartbeatTimeout  int           `toml:"heartbeat_timeout"`
+	ReadDeadline      time.Duration `toml:"read_deadline"`
+	WriteDeadline     time.Duration `toml:"write_deadline"`
 }
 
 type PublisherHttpConfig struct {
