@@ -9,7 +9,12 @@ message PublishBody {
 }
 
 message PublishResponse {
-    map<string, uint32> value = 1;
+    message ResponseBody {
+        string topic = 1;
+        string channelId = 2;
+        bool isReply = 3;
+    }
+    repeated ResponseBody body = 2;
 }
 
 service Publish {

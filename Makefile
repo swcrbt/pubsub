@@ -1,6 +1,6 @@
 BUILD=`date +%FT%T%z`
 COMMIT=`git rev-parse HEAD`
-VER=1.0.1
+VER=1.1.1
 
 LDFLAGS=-ldflags " -s -X main.AppVersion=${VER} -X main.BuildDate=${BUILD} -X main.GitCommit=${COMMIT}"
 

@@ -9,14 +9,22 @@ import (
 )
 
 type AuthRecord struct {
-	Topic  string `json:"topic" binding:"required"`
+	Key    string `json:"key" binding:"required"`
 	Secret string `json:"secret" binding:"required"`
 }
 
 type StorageRecord struct {
+	// 加密类型，CLEAR：存在即可，TICKET：一次性登录凭证
 	CryptoType string `json:"cryptotype"`
-	Topic      string `json:"topic"`
-	Secret     string `json:"secret"`
+
+	// Id，如有重复会关闭上一个的channel
+	ChannelID string `json:"channelid" binding:"required"`
+
+	// 默认订阅主题
+	Topics []string `json:"topics"`
+
+	// 密钥
+	Secret string `json:"secret"`
 }
 
 const (
@@ -48,7 +56,7 @@ func SubAuth() gin.HandlerFunc {
 			return
 		}
 
-		authKey := "sub_auth_key_" + authRecord.Topic
+		authKey := "sub_auth_key_" + authRecord.Key
 		storageData, err := container.Mgr.Storager.Get(authKey)
 		if err != nil {
 			c.AbortWithStatus(http.StatusForbidden)

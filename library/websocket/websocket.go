@@ -3,8 +3,10 @@ package websocket
 import (
 	"errors"
 	"github.com/gorilla/websocket"
+	"net"
 	"net/http"
 	"sync"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -20,8 +22,9 @@ type Connection struct {
 	outChan   chan []byte
 	closeChan chan byte
 
-	mutex    sync.Mutex // 对closeChan关闭上锁
-	isClosed bool       // 防止closeChan被关闭多次
+	delaySendPing chan byte
+	mutex         sync.Mutex // 对closeChan关闭上锁
+	isClosed      bool       // 防止closeChan被关闭多次
 }
 
 func New(w http.ResponseWriter, r *http.Request) (conn *Connection, err error) {
@@ -32,10 +35,11 @@ func New(w http.ResponseWriter, r *http.Request) (conn *Connection, err error) {
 	}
 
 	conn = &Connection{
-		wsConnect: wsConn,
-		inChan:    make(chan []byte, 1000),
-		outChan:   make(chan []byte, 1000),
-		closeChan: make(chan byte, 1),
+		wsConnect:     wsConn,
+		inChan:        make(chan []byte, 1000),
+		outChan:       make(chan []byte, 1000),
+		delaySendPing: make(chan byte, 10),
+		closeChan:     make(chan byte, 1),
 	}
 
 	// 启动读协程
@@ -46,13 +50,50 @@ func New(w http.ResponseWriter, r *http.Request) (conn *Connection, err error) {
 	return conn, nil
 }
 
-func (conn *Connection) GetWsConn() *websocket.Conn {
-	return conn.wsConnect
+func (conn *Connection) SetDeadline(readDeadline time.Duration, writeDeadline time.Duration) {
+	_ = conn.wsConnect.SetReadDeadline(time.Now().Add(readDeadline))
+
+	// 收到ping处理
+	conn.wsConnect.SetPingHandler(func(message string) error {
+		conn.delaySendPing <- 1
+		err := conn.wsConnect.WriteControl(websocket.PongMessage, []byte(message), time.Now().Add(writeDeadline))
+		if err == websocket.ErrCloseSent {
+			return nil
+		} else if e, ok := err.(net.Error); ok && e.Temporary() {
+			return nil
+		}
+		return err
+	})
+
+	// 收到pong处理
+	conn.wsConnect.SetPongHandler(func(message string) error {
+		return conn.wsConnect.SetReadDeadline(time.Now().Add(readDeadline))
+	})
+
+	// 当没送到ping和text message时发送ping
+	go func() {
+		pingPeriod := (readDeadline * 9) / 10
+		timer := time.NewTimer(pingPeriod)
+		defer timer.Stop()
+
+		for {
+			select {
+			case <-conn.delaySendPing:
+				_ = conn.wsConnect.SetReadDeadline(time.Now().Add(readDeadline))
+			case <-timer.C:
+				if err := conn.wsConnect.WriteControl(websocket.PingMessage, nil, time.Now().Add(writeDeadline)); err != nil {
+					return
+				}
+			}
+			timer.Reset(pingPeriod)
+		}
+	}()
 }
 
 func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
+		conn.delaySendPing <- 1
 	case <-conn.closeChan:
 		//close(conn.inChan)
 		err = errors.New("connection is closeed")
@@ -85,8 +126,8 @@ func (conn *Connection) Close() {
 // 内部实现
 func (conn *Connection) readLoop() {
 	var (
-		data        []byte
-		err         error
+		data []byte
+		err  error
 	)
 
 	for {

@@ -74,24 +74,31 @@ func subscriberHandler(c *gin.Context) {
 		return
 	}
 
-	ws := conn.GetWsConn()
-	_ = ws.SetReadDeadline(time.Now().Add(time.Second * container.Mgr.Config.Server.Subscriber.ReadDeadline))
-	_ = ws.SetWriteDeadline(time.Now().Add(time.Second * container.Mgr.Config.Server.Subscriber.WriteDeadline))
+	conn.SetDeadline(
+		time.Second*container.Mgr.Config.Server.Subscriber.ReadDeadline,
+		time.Second*container.Mgr.Config.Server.Subscriber.WriteDeadline,
+	)
 
-	topic := auth.(middleware.StorageRecord).Topic
-	channel, cid := container.Mgr.Dispatcher.Subscribe(topic)
+	cid := auth.(middleware.StorageRecord).ChannelID
+	topics := auth.(middleware.StorageRecord).Topics
+	channel := make(chan []byte, 10)
+
+	fmt.Printf("cid:\"%v\" channel: %v\n", cid, channel)
+
+	for _, topic := range topics {
+		container.Mgr.Dispatcher.Subscribe(topic, cid, channel)
+	}
 
 	// 回应
 	go func() {
 		for {
 			data, err := conn.ReadMessage()
 			if err != nil {
-				container.Mgr.Dispatcher.UnSubscribe(topic, cid)
-				container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" read message failed: %v\n", topic, cid, err)
+				container.Mgr.Logger.Printf("cid:\"%v\" read message failed: %v\n", cid, err)
 				return
 			}
 
-			fmt.Printf("topic:\"%s\" cid:\"%v\" read message: %s\n", topic, cid, string(data))
+			fmt.Printf("cid:\"%v\" read message: %s\n", cid, string(data))
 
 			var resp *dispatcher.PublishRecord
 			err = json.Unmarshal(data, &resp)
@@ -99,7 +106,21 @@ func subscriberHandler(c *gin.Context) {
 				continue
 			}
 
-			container.Mgr.Dispatcher.Feedback(topic, cid, resp)
+			if resp.Action == "subscribe" {
+				if body, ok := resp.Body.(map[string]interface{}); ok {
+					container.Mgr.Dispatcher.Subscribe(body["topic"].(string), cid, channel)
+				}
+				continue
+			}
+
+			if resp.Action == "unsubscribe" {
+				if body, ok := resp.Body.(map[string]interface{}); ok {
+					container.Mgr.Dispatcher.UnSubscribe(body["topic"].(string), cid)
+				}
+				continue
+			}
+
+			container.Mgr.Dispatcher.Feedback(cid, resp)
 		}
 	}()
 
@@ -111,10 +132,13 @@ func subscriberHandler(c *gin.Context) {
 		}
 
 		if err = conn.WriteMessage(data); err != nil {
-			container.Mgr.Logger.Printf("topic:\"%s\" cid:\"%v\" release data failed: %v\n", topic, cid, err)
+			container.Mgr.Logger.Printf("cid:\"%v\" write data failed: %v\n", cid, err)
 			break
 		}
 	}
 
-	conn.Close()
+	defer func() {
+		container.Mgr.Dispatcher.Destroy(cid, channel)
+		conn.Close()
+	}()
 }

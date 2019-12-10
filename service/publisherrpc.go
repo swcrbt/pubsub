@@ -13,7 +13,7 @@ type PublishService struct {
 
 type RpcPublisher struct {
 	handler *PublishService
-	server *grpc.Server
+	server  *grpc.Server
 }
 
 func NewRpcPublisher() *RpcPublisher {
@@ -57,5 +57,15 @@ func (rec *RpcPublisher) Stop() error {
 }
 
 func (ser *PublishService) Release(ctx context.Context, req *protos.PublishBody) (*protos.PublishResponse, error) {
-	return &protos.PublishResponse{Value: container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)}, nil
+	var resp []*protos.PublishResponse_ResponseBody
+
+	result := container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)
+
+	for topic, res := range result {
+		for cid, isReply := range res {
+			resp = append(resp, &protos.PublishResponse_ResponseBody{Topic: topic, ChannelId: cid, IsReply: isReply})
+		}
+	}
+
+	return &protos.PublishResponse{Body: resp}, nil
 }
