@@ -20,14 +20,17 @@ type MsgBackRecord struct {
 }
 
 type Dispatcher struct {
-	pool    map[string]map[string]chan []byte
-	msgback map[string]*MsgBackRecord
+	subers   map[string]map[string]chan []byte
+	msgbacks map[string]*MsgBackRecord
+
+	sublock sync.Mutex
+	msglock sync.Mutex
 }
 
 func New() *Dispatcher {
 	return &Dispatcher{
-		pool:    make(map[string]map[string]chan []byte, 0xffff),
-		msgback: map[string]*MsgBackRecord{},
+		subers:   make(map[string]map[string]chan []byte, 0xffff),
+		msgbacks: map[string]*MsgBackRecord{},
 	}
 }
 
@@ -47,7 +50,8 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 			result[topic] = map[string]bool{}
 		}
 
-		if listeners, ok := dis.pool[topic]; ok {
+		if listeners, ok := dis.subers[topic]; ok {
+			dis.msglock.Lock()
 			for cid, listener := range listeners {
 				if listener == nil {
 					continue
@@ -61,9 +65,9 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 				}
 
 				callbacker := make(chan *PublishRecord, 1)
-				dis.msgback[mid] = &MsgBackRecord{
+				dis.msgbacks[mid] = &MsgBackRecord{
 					Topic: topic,
-					Chan: callbacker,
+					Chan:  callbacker,
 				}
 
 				listener <- respData
@@ -82,10 +86,11 @@ func (dis *Dispatcher) Publish(topics []string, action string, body interface{})
 					wg.Done()
 				}(topic, cid, callbacker)
 			}
+			dis.msglock.Unlock()
 		}
 	}
 
-	fmt.Printf("callbackers back:%v \n", dis.msgback)
+	fmt.Printf("callbackers back:%v \n", dis.msgbacks)
 
 	wg.Wait()
 
@@ -97,17 +102,20 @@ func (dis *Dispatcher) Subscribe(topic string, cid string, listener chan []byte)
 		return
 	}
 
-	if _, ok := dis.pool[topic]; !ok {
-		dis.pool[topic] = map[string]chan []byte{}
+	dis.sublock.Lock()
+	defer dis.sublock.Unlock()
+
+	if _, ok := dis.subers[topic]; !ok {
+		dis.subers[topic] = map[string]chan []byte{}
 	}
 
-	/*if _, ok := dis.pool[topic][cid]; ok {
+	/*if _, ok := dis.subers[topic][cid]; ok {
 		dis.UnSubscribe(topic, cid)
 	}*/
 
-	dis.pool[topic][cid] = listener
+	dis.subers[topic][cid] = listener
 
-	fmt.Printf("sub pool: %v\n", dis.pool)
+	fmt.Printf("sub subers: %v\n", dis.subers)
 }
 
 func (dis *Dispatcher) UnSubscribe(topic string, cid string) {
@@ -115,44 +123,51 @@ func (dis *Dispatcher) UnSubscribe(topic string, cid string) {
 		return
 	}
 
-	if _, ok := dis.pool[topic]; !ok {
+	if _, ok := dis.subers[topic]; !ok {
 		return
 	}
 
-	if listener, ok := dis.pool[topic][cid]; !ok || listener == nil {
+	if listener, ok := dis.subers[topic][cid]; !ok || listener == nil {
 		return
 	}
 
-	delete(dis.pool[topic], cid)
+	dis.sublock.Lock()
+	defer dis.sublock.Unlock()
 
-	fmt.Printf("unsub pool: %v\n", dis.pool)
+	delete(dis.subers[topic], cid)
+
+	fmt.Printf("unsub subers: %v\n", dis.subers)
 }
 
 func (dis *Dispatcher) Feedback(cid string, data *PublishRecord) {
-	if _, ok := dis.msgback[data.ID]; !ok {
+	if _, ok := dis.msgbacks[data.ID]; !ok {
 		return
 	}
 
+	dis.msglock.Lock()
+	defer dis.msglock.Unlock()
+
 	fmt.Printf("feedback %s[%v] -- %v\n", data.ID, cid, data)
 
-	if callbacker, ok := dis.msgback[data.ID]; ok {
+	if callbacker, ok := dis.msgbacks[data.ID]; ok {
 		callbacker.Chan <- data
-		delete(dis.msgback, data.ID)
+		delete(dis.msgbacks, data.ID)
 	}
 }
 
 func (dis *Dispatcher) Destroy(cid string, listener chan []byte) {
-	for topic, callbackers := range dis.pool {
+	dis.sublock.Lock()
+	defer dis.sublock.Unlock()
+
+	for topic, callbackers := range dis.subers {
 		for id := range callbackers {
 			if id == cid {
-				delete(dis.pool[topic], id)
+				delete(dis.subers[topic], id)
 			}
 		}
 	}
 
 	if listener != nil {
 		close(listener)
-		fmt.Println(listener)
-		//listener = nil
 	}
 }
