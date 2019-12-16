@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/gin-gonic/gin"
 	"gitlab.orayer.com/golang/errors"
-	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/pubsub/library/container"
 	"gitlab.orayer.com/golang/server"
 	"net/http"
 )
@@ -72,9 +72,25 @@ func publisherHandler(c *gin.Context) {
 		return
 	}
 
+	/*resp := map[string]map[string]bool{}
 	result := container.Mgr.Dispatcher.Publish(params.Topics, params.Action, params.Body)
 
-	c.JSON(http.StatusOK, result)
+	result.Range(func(topic, res interface{}) bool {
+
+		if _, ok := resp[topic.(string)]; !ok {
+			resp[topic.(string)] = map[string]bool{}
+		}
+
+		res.(*sync.Map).Range(func(cid, isReply interface{}) bool {
+			resp[topic.(string)][cid.(string)] = isReply.(bool)
+			return true
+		})
+
+		return true
+	})
+
+	c.JSON(http.StatusOK, resp)*/
+	container.Mgr.Dispatcher.Publish(params.Topics, params.Action, params.Body)
+	c.AbortWithStatus(http.StatusNoContent)
 	return
 }
-

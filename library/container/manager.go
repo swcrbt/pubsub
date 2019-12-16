@@ -1,9 +1,9 @@
 package container
 
 import (
-	"gitlab.orayer.com/golang/issue/config"
-	"gitlab.orayer.com/golang/issue/library/storage"
-	"gitlab.orayer.com/golang/issue/library/dispatcher"
+	"gitlab.orayer.com/golang/pubsub/config"
+	"gitlab.orayer.com/golang/pubsub/library/storage"
+	"gitlab.orayer.com/golang/pubsub/library/dispatcher"
 	"log"
 	"os"
 	"time"

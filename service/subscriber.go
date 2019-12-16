@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gitlab.orayer.com/golang/issue/library/container"
-	"gitlab.orayer.com/golang/issue/library/dispatcher"
-	"gitlab.orayer.com/golang/issue/library/websocket"
-	"gitlab.orayer.com/golang/issue/middleware"
+	"gitlab.orayer.com/golang/pubsub/library/container"
+	"gitlab.orayer.com/golang/pubsub/library/dispatcher"
+	"gitlab.orayer.com/golang/pubsub/library/websocket"
+	"gitlab.orayer.com/golang/pubsub/middleware"
 	"gitlab.orayer.com/golang/server"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -79,21 +80,40 @@ func subscriberHandler(c *gin.Context) {
 		time.Second*container.Mgr.Config.Server.Subscriber.WriteDeadline,
 	)
 
+	var mutex sync.Mutex
 	cid := auth.(middleware.StorageRecord).ChannelID
 	topics := auth.(middleware.StorageRecord).Topics
 	channel := make(chan []byte, 10)
+	isClosed := false
 
-	fmt.Printf("cid:\"%v\" channel: %v\n", cid, channel)
+	container.Mgr.Logger.Printf("cid:\"%v\", channel: %v, topics: %v \n", cid, channel, topics)
 
 	for _, topic := range topics {
 		container.Mgr.Dispatcher.Subscribe(topic, cid, channel)
 	}
+
+	defer func() {
+		container.Mgr.Dispatcher.Destroy(cid, channel)
+		mutex.Lock()
+		if !isClosed {
+			close(channel)
+			isClosed = true
+		}
+		mutex.Unlock()
+		conn.Close()
+	}()
 
 	// 回应
 	go func() {
 		for {
 			data, err := conn.ReadMessage()
 			if err != nil {
+				mutex.Lock()
+				if !isClosed {
+					close(channel)
+					isClosed = true
+				}
+				mutex.Unlock()
 				container.Mgr.Logger.Printf("cid:\"%v\" read message failed: %v\n", cid, err)
 				return
 			}
@@ -106,21 +126,21 @@ func subscriberHandler(c *gin.Context) {
 				continue
 			}
 
-			if resp.Action == "subscribe" {
+			if resp.Action == "sub" {
 				if body, ok := resp.Body.(map[string]interface{}); ok {
 					container.Mgr.Dispatcher.Subscribe(body["topic"].(string), cid, channel)
 				}
 				continue
 			}
 
-			if resp.Action == "unsubscribe" {
+			if resp.Action == "unsub" {
 				if body, ok := resp.Body.(map[string]interface{}); ok {
 					container.Mgr.Dispatcher.UnSubscribe(body["topic"].(string), cid)
 				}
 				continue
 			}
 
-			container.Mgr.Dispatcher.Feedback(cid, resp)
+			// container.Mgr.Dispatcher.Feedback(cid, resp)
 		}
 	}()
 
@@ -128,6 +148,7 @@ func subscriberHandler(c *gin.Context) {
 	for {
 		data, ok := <-channel
 		if (!ok) {
+			container.Mgr.Logger.Printf("cid:\"%v\" channel close", cid)
 			break
 		}
 
@@ -136,9 +157,4 @@ func subscriberHandler(c *gin.Context) {
 			break
 		}
 	}
-
-	defer func() {
-		container.Mgr.Dispatcher.Destroy(cid, channel)
-		conn.Close()
-	}()
 }

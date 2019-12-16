@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.orayer.com/golang/issue/library/container"
-	"gitlab.orayer.com/golang/issue/service"
+	"gitlab.orayer.com/golang/pubsub/library/container"
+	"gitlab.orayer.com/golang/pubsub/service"
 	"os"
 	"os/signal"
 )

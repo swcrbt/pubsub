@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/pubsub/library/container"
 	"net/http"
 )
 

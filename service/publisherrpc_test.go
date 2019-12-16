@@ -3,9 +3,9 @@ package service_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gitlab.orayer.com/golang/issue/library/container"
-	"gitlab.orayer.com/golang/issue/protos"
-	"gitlab.orayer.com/golang/issue/service"
+	"gitlab.orayer.com/golang/pubsub/library/container"
+	"gitlab.orayer.com/golang/pubsub/protos"
+	"gitlab.orayer.com/golang/pubsub/service"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

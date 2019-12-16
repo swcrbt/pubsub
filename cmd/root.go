@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"gitlab.orayer.com/golang/issue/app"
+	"gitlab.orayer.com/golang/pubsub/app"
 	"os"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "gitlab.orayer.com/golang/issue",
+	Use:   "gitlab.orayer.com/golang/pubsub",
 	Short: "Long connection data Issue service",
 }
 

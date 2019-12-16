@@ -2,7 +2,7 @@ package service
 
 import (
 	//_ "github.com/mkevac/debugcharts"
-	"gitlab.orayer.com/golang/issue/library/container"
+	"gitlab.orayer.com/golang/pubsub/library/container"
 	"net/http"
 	_ "net/http/pprof"
 )

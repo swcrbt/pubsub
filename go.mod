@@ -1,4 +1,4 @@
-module gitlab.orayer.com/golang/issue
+module gitlab.orayer.com/golang/pubsub
 
 go 1.12
 

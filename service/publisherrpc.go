@@ -1,8 +1,8 @@
 package service
 
 import (
-	"gitlab.orayer.com/golang/issue/library/container"
-	"gitlab.orayer.com/golang/issue/protos"
+	"gitlab.orayer.com/golang/pubsub/library/container"
+	"gitlab.orayer.com/golang/pubsub/protos"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
@@ -59,13 +59,18 @@ func (rec *RpcPublisher) Stop() error {
 func (ser *PublishService) Release(ctx context.Context, req *protos.PublishBody) (*protos.PublishResponse, error) {
 	var resp []*protos.PublishResponse_ResponseBody
 
-	result := container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)
+	/*result := container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)
 
-	for topic, res := range result {
-		for cid, isReply := range res {
-			resp = append(resp, &protos.PublishResponse_ResponseBody{Topic: topic, ChannelId: cid, IsReply: isReply})
-		}
-	}
+	result.Range(func(topic, res interface{}) bool {
 
+		res.(*sync.Map).Range(func(cid, isReply interface{}) bool {
+			resp = append(resp, &protos.PublishResponse_ResponseBody{Topic: topic.(string), ChannelId: cid.(string), IsReply: isReply.(bool)})
+			return true
+		})
+
+		return true
+	})*/
+
+	container.Mgr.Dispatcher.Publish(req.Topics, req.Action, req.Body)
 	return &protos.PublishResponse{Body: resp}, nil
 }

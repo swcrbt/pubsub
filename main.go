@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.orayer.com/golang/issue/cmd"
+	"gitlab.orayer.com/golang/pubsub/cmd"
 )
 
 var (

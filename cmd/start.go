@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.orayer.com/golang/issue/app"
+	"gitlab.orayer.com/golang/pubsub/app"
 	"gitlab.orayer.com/golang/server"
 )
 
