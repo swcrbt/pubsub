@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package protos;
+
+message NodeRequest {
+}
+
+message NodeResponse {
+}
+
+service Node {
+    rpc refreshNode (NodeRequest) returns (NodeResponse);
+}

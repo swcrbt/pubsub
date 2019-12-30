@@ -2,21 +2,15 @@ syntax = "proto3";
 
 package protos;
 
-message PublishBody {
+message PublishMessage {
     repeated string topics = 1;
     string action = 2;
-    map<string, string> body = 3;
+    bytes body = 3;
 }
 
 message PublishResponse {
-    message ResponseBody {
-        string topic = 1;
-        string channelId = 2;
-        bool isReply = 3;
-    }
-    repeated ResponseBody body = 2;
 }
 
 service Publish {
-    rpc release (PublishBody) returns (PublishResponse);
+    rpc publish (PublishMessage) returns (PublishResponse);
 }

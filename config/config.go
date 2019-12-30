@@ -9,25 +9,26 @@ import (
 
 // ServerConfig server config
 type ServerConfig struct {
-	Mode          string
-	Subscriber    SubscriberConfig
-	PublisherHttp PublisherHttpConfig `toml:"publisher_http"`
-	PublisherRpc  PublisherRpcConfig  `toml:"publisher_rpc"`
-	PProf         PProfConfig
+	Mode            string
+	ShutdownTimeout time.Duration `toml:"shutdown_timeout"`
+	Subscriber      SubscriberConfig
+	Publisher       PublisherConfig
+	RpcService      RpcServiceConfig `toml:"rpc_service"`
+	PProf           PProfConfig
 }
 
 type SubscriberConfig struct {
-	Port int
+	Address string
 
-	ReadDeadline      time.Duration `toml:"read_deadline"`
-	WriteDeadline     time.Duration `toml:"write_deadline"`
+	ReadDeadline  time.Duration `toml:"read_deadline"`
+	WriteDeadline time.Duration `toml:"write_deadline"`
 }
 
-type PublisherHttpConfig struct {
-	Port int
+type PublisherConfig struct {
+	Address string
 }
 
-type PublisherRpcConfig struct {
+type RpcServiceConfig struct {
 	Address string
 }
 

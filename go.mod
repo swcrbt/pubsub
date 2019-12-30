@@ -17,7 +17,6 @@ require (
 	github.com/onsi/gomega v1.7.1
 	github.com/shirou/gopsutil v2.19.10+incompatible // indirect
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4 // indirect
-	github.com/spf13/cobra v0.0.5
 	github.com/ugorji/go v1.1.7 // indirect
 	gitlab.orayer.com/golang/errors v0.0.0-20191022062103-5ac945e04fd9
 	gitlab.orayer.com/golang/server v0.0.0-20191119074007-4e60456b9561

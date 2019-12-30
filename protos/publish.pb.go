@@ -24,55 +24,55 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type PublishBody struct {
-	Topics               []string          `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
-	Action               string            `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
-	Body                 map[string]string `protobuf:"bytes,3,rep,name=body,proto3" json:"body,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+type PublishMessage struct {
+	Topics               []string `protobuf:"bytes,1,rep,name=topics,proto3" json:"topics,omitempty"`
+	Action               string   `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	Body                 []byte   `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *PublishBody) Reset()         { *m = PublishBody{} }
-func (m *PublishBody) String() string { return proto.CompactTextString(m) }
-func (*PublishBody) ProtoMessage()    {}
-func (*PublishBody) Descriptor() ([]byte, []int) {
+func (m *PublishMessage) Reset()         { *m = PublishMessage{} }
+func (m *PublishMessage) String() string { return proto.CompactTextString(m) }
+func (*PublishMessage) ProtoMessage()    {}
+func (*PublishMessage) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a343d2c9ec21a458, []int{0}
 }
 
-func (m *PublishBody) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PublishBody.Unmarshal(m, b)
+func (m *PublishMessage) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PublishMessage.Unmarshal(m, b)
 }
-func (m *PublishBody) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PublishBody.Marshal(b, m, deterministic)
+func (m *PublishMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PublishMessage.Marshal(b, m, deterministic)
 }
-func (m *PublishBody) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PublishBody.Merge(m, src)
+func (m *PublishMessage) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishMessage.Merge(m, src)
 }
-func (m *PublishBody) XXX_Size() int {
-	return xxx_messageInfo_PublishBody.Size(m)
+func (m *PublishMessage) XXX_Size() int {
+	return xxx_messageInfo_PublishMessage.Size(m)
 }
-func (m *PublishBody) XXX_DiscardUnknown() {
-	xxx_messageInfo_PublishBody.DiscardUnknown(m)
+func (m *PublishMessage) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishMessage.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_PublishBody proto.InternalMessageInfo
+var xxx_messageInfo_PublishMessage proto.InternalMessageInfo
 
-func (m *PublishBody) GetTopics() []string {
+func (m *PublishMessage) GetTopics() []string {
 	if m != nil {
 		return m.Topics
 	}
 	return nil
 }
 
-func (m *PublishBody) GetAction() string {
+func (m *PublishMessage) GetAction() string {
 	if m != nil {
 		return m.Action
 	}
 	return ""
 }
 
-func (m *PublishBody) GetBody() map[string]string {
+func (m *PublishMessage) GetBody() []byte {
 	if m != nil {
 		return m.Body
 	}
@@ -80,10 +80,9 @@ func (m *PublishBody) GetBody() map[string]string {
 }
 
 type PublishResponse struct {
-	Body                 []*PublishResponse_ResponseBody `protobuf:"bytes,2,rep,name=body,proto3" json:"body,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *PublishResponse) Reset()         { *m = PublishResponse{} }
@@ -111,96 +110,25 @@ func (m *PublishResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PublishResponse proto.InternalMessageInfo
 
-func (m *PublishResponse) GetBody() []*PublishResponse_ResponseBody {
-	if m != nil {
-		return m.Body
-	}
-	return nil
-}
-
-type PublishResponse_ResponseBody struct {
-	Topic                string   `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`
-	ChannelId            string   `protobuf:"bytes,2,opt,name=channelId,proto3" json:"channelId,omitempty"`
-	IsReply              bool     `protobuf:"varint,3,opt,name=isReply,proto3" json:"isReply,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PublishResponse_ResponseBody) Reset()         { *m = PublishResponse_ResponseBody{} }
-func (m *PublishResponse_ResponseBody) String() string { return proto.CompactTextString(m) }
-func (*PublishResponse_ResponseBody) ProtoMessage()    {}
-func (*PublishResponse_ResponseBody) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a343d2c9ec21a458, []int{1, 0}
-}
-
-func (m *PublishResponse_ResponseBody) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PublishResponse_ResponseBody.Unmarshal(m, b)
-}
-func (m *PublishResponse_ResponseBody) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PublishResponse_ResponseBody.Marshal(b, m, deterministic)
-}
-func (m *PublishResponse_ResponseBody) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PublishResponse_ResponseBody.Merge(m, src)
-}
-func (m *PublishResponse_ResponseBody) XXX_Size() int {
-	return xxx_messageInfo_PublishResponse_ResponseBody.Size(m)
-}
-func (m *PublishResponse_ResponseBody) XXX_DiscardUnknown() {
-	xxx_messageInfo_PublishResponse_ResponseBody.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PublishResponse_ResponseBody proto.InternalMessageInfo
-
-func (m *PublishResponse_ResponseBody) GetTopic() string {
-	if m != nil {
-		return m.Topic
-	}
-	return ""
-}
-
-func (m *PublishResponse_ResponseBody) GetChannelId() string {
-	if m != nil {
-		return m.ChannelId
-	}
-	return ""
-}
-
-func (m *PublishResponse_ResponseBody) GetIsReply() bool {
-	if m != nil {
-		return m.IsReply
-	}
-	return false
-}
-
 func init() {
-	proto.RegisterType((*PublishBody)(nil), "protos.PublishBody")
-	proto.RegisterMapType((map[string]string)(nil), "protos.PublishBody.BodyEntry")
+	proto.RegisterType((*PublishMessage)(nil), "protos.PublishMessage")
 	proto.RegisterType((*PublishResponse)(nil), "protos.PublishResponse")
-	proto.RegisterType((*PublishResponse_ResponseBody)(nil), "protos.PublishResponse.ResponseBody")
 }
 
 func init() { proto.RegisterFile("protos/publish.proto", fileDescriptor_a343d2c9ec21a458) }
 
 var fileDescriptor_a343d2c9ec21a458 = []byte{
-	// 269 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x91, 0x4f, 0x4b, 0xc3, 0x40,
-	0x10, 0xc5, 0xd9, 0x44, 0x1b, 0x33, 0x15, 0x94, 0xb1, 0x68, 0x28, 0x0a, 0x41, 0x3c, 0xe4, 0x14,
-	0xb1, 0x1e, 0x5a, 0x3c, 0x16, 0x3c, 0x78, 0x93, 0x3d, 0x7b, 0xc9, 0x9f, 0x81, 0x06, 0x97, 0xdd,
-	0x25, 0x9b, 0x0a, 0xf9, 0x48, 0x7e, 0x4b, 0xd9, 0x3f, 0xd1, 0x22, 0x7a, 0x09, 0xf3, 0x5e, 0x86,
-	0xf7, 0x7e, 0x99, 0xc0, 0x42, 0xf7, 0x6a, 0x50, 0xe6, 0x5e, 0xef, 0x6b, 0xd1, 0x99, 0x5d, 0xe9,
-	0x24, 0xce, 0xbc, 0x7b, 0xfb, 0xc9, 0x60, 0xfe, 0xea, 0xdf, 0x6c, 0x55, 0x3b, 0xe2, 0x25, 0xcc,
-	0x06, 0xa5, 0xbb, 0xc6, 0x64, 0x2c, 0x8f, 0x8b, 0x94, 0x07, 0x65, 0xfd, 0xaa, 0x19, 0x3a, 0x25,
-	0xb3, 0x28, 0x67, 0xd6, 0xf7, 0x0a, 0x1f, 0xe0, 0xa8, 0x56, 0xed, 0x98, 0xc5, 0x79, 0x5c, 0xcc,
-	0x57, 0x37, 0x3e, 0xdd, 0x94, 0x07, 0x91, 0xa5, 0x7d, 0x3c, 0xcb, 0xa1, 0x1f, 0xb9, 0x5b, 0x5d,
-	0xae, 0x21, 0xfd, 0xb6, 0xf0, 0x1c, 0xe2, 0x77, 0x1a, 0x33, 0xe6, 0x42, 0xed, 0x88, 0x0b, 0x38,
-	0xfe, 0xa8, 0xc4, 0x9e, 0x42, 0x91, 0x17, 0x4f, 0xd1, 0x86, 0x59, 0xd6, 0xb3, 0x10, 0xcc, 0xc9,
-	0x68, 0x25, 0x0d, 0xe1, 0x26, 0xf4, 0x47, 0xae, 0xff, 0xee, 0x57, 0xff, 0xb4, 0x56, 0x4e, 0x83,
-	0x2d, 0x0e, 0x18, 0x6f, 0x70, 0x7a, 0xe8, 0xda, 0x5e, 0xf7, 0xad, 0x81, 0xc5, 0x0b, 0xbc, 0x86,
-	0xb4, 0xd9, 0x55, 0x52, 0x92, 0x78, 0x69, 0x03, 0xd1, 0x8f, 0x81, 0x19, 0x24, 0x9d, 0xe1, 0xa4,
-	0x85, 0x3d, 0x00, 0x2b, 0x4e, 0xf8, 0x24, 0x57, 0x5b, 0x48, 0x02, 0x03, 0xae, 0x21, 0xe9, 0x49,
-	0x50, 0x65, 0x08, 0x2f, 0xfe, 0xb8, 0xcf, 0xf2, 0xea, 0x1f, 0xe8, 0xda, 0xff, 0xa3, 0xc7, 0xaf,
-	0x00, 0x00, 0x00, 0xff, 0xff, 0xd8, 0x45, 0x3b, 0xf4, 0xc2, 0x01, 0x00, 0x00,
+	// 157 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x29, 0x28, 0xca, 0x2f,
+	0xc9, 0x2f, 0xd6, 0x2f, 0x28, 0x4d, 0xca, 0xc9, 0x2c, 0xce, 0xd0, 0x03, 0x73, 0x85, 0xd8, 0x20,
+	0xa2, 0x4a, 0x21, 0x5c, 0x7c, 0x01, 0x10, 0x09, 0xdf, 0xd4, 0xe2, 0xe2, 0xc4, 0xf4, 0x54, 0x21,
+	0x31, 0x2e, 0xb6, 0x92, 0xfc, 0x82, 0xcc, 0xe4, 0x62, 0x09, 0x46, 0x05, 0x66, 0x0d, 0xce, 0x20,
+	0x28, 0x0f, 0x24, 0x9e, 0x98, 0x5c, 0x92, 0x99, 0x9f, 0x27, 0xc1, 0xa4, 0xc0, 0x08, 0x12, 0x87,
+	0xf0, 0x84, 0x84, 0xb8, 0x58, 0x92, 0xf2, 0x53, 0x2a, 0x25, 0x98, 0x15, 0x18, 0x35, 0x78, 0x82,
+	0xc0, 0x6c, 0x25, 0x41, 0x2e, 0x7e, 0xa8, 0xa9, 0x41, 0xa9, 0xc5, 0x05, 0xf9, 0x79, 0xc5, 0xa9,
+	0x46, 0xae, 0x5c, 0xec, 0x50, 0x21, 0x21, 0x2b, 0x2e, 0x76, 0xa8, 0x63, 0x84, 0xc4, 0x20, 0xce,
+	0x29, 0xd6, 0x43, 0x75, 0x84, 0x94, 0x38, 0x9a, 0x38, 0xcc, 0x98, 0x24, 0x88, 0xbb, 0x8d, 0x01,
+	0x01, 0x00, 0x00, 0xff, 0xff, 0xe1, 0x95, 0x6c, 0x88, 0xd6, 0x00, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -215,7 +143,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PublishClient interface {
-	Release(ctx context.Context, in *PublishBody, opts ...grpc.CallOption) (*PublishResponse, error)
+	Publish(ctx context.Context, in *PublishMessage, opts ...grpc.CallOption) (*PublishResponse, error)
 }
 
 type publishClient struct {
@@ -226,9 +154,9 @@ func NewPublishClient(cc *grpc.ClientConn) PublishClient {
 	return &publishClient{cc}
 }
 
-func (c *publishClient) Release(ctx context.Context, in *PublishBody, opts ...grpc.CallOption) (*PublishResponse, error) {
+func (c *publishClient) Publish(ctx context.Context, in *PublishMessage, opts ...grpc.CallOption) (*PublishResponse, error) {
 	out := new(PublishResponse)
-	err := c.cc.Invoke(ctx, "/protos.Publish/release", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/protos.Publish/publish", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -237,35 +165,35 @@ func (c *publishClient) Release(ctx context.Context, in *PublishBody, opts ...gr
 
 // PublishServer is the server API for Publish service.
 type PublishServer interface {
-	Release(context.Context, *PublishBody) (*PublishResponse, error)
+	Publish(context.Context, *PublishMessage) (*PublishResponse, error)
 }
 
 // UnimplementedPublishServer can be embedded to have forward compatible implementations.
 type UnimplementedPublishServer struct {
 }
 
-func (*UnimplementedPublishServer) Release(ctx context.Context, req *PublishBody) (*PublishResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Release not implemented")
+func (*UnimplementedPublishServer) Publish(ctx context.Context, req *PublishMessage) (*PublishResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Publish not implemented")
 }
 
 func RegisterPublishServer(s *grpc.Server, srv PublishServer) {
 	s.RegisterService(&_Publish_serviceDesc, srv)
 }
 
-func _Publish_Release_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishBody)
+func _Publish_Publish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishMessage)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PublishServer).Release(ctx, in)
+		return srv.(PublishServer).Publish(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protos.Publish/Release",
+		FullMethod: "/protos.Publish/Publish",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PublishServer).Release(ctx, req.(*PublishBody))
+		return srv.(PublishServer).Publish(ctx, req.(*PublishMessage))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -275,8 +203,8 @@ var _Publish_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*PublishServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "release",
-			Handler:    _Publish_Release_Handler,
+			MethodName: "publish",
+			Handler:    _Publish_Publish_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

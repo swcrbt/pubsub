@@ -6,6 +6,8 @@ import (
 	"gitlab.orayer.com/golang/pubsub/service"
 	"os"
 	"os/signal"
+	"runtime"
+	"time"
 )
 
 type App struct {
@@ -17,16 +19,18 @@ func New (configFile string) *App {
 		panic(err)
 	}
 
+	container.Mgr.RegisterNode(container.Mgr.Config.Server.RpcService.Address)
+
 	gin.SetMode(container.Mgr.Config.Server.Mode)
 
 	app := &App{}
 	app.Use(service.NewSubscriber())
-	app.Use(service.NewHttpPublisher())
-	//app.Use(service.NewRpcPublisher())
+	app.Use(service.NewPublisher())
+	app.Use(service.NewRpcService())
 
-	if gin.IsDebugging() {
-		app.Use(service.NewPProf())
-	}
+	//if gin.IsDebugging() {
+	//	app.Use(service.NewPProf())
+	//}
 
 	return app
 }
@@ -38,10 +42,39 @@ func (app *App) Run() {
 		}
 	}
 
+	exitChan := make(chan byte)
+
+	go func() {
+		var rtm runtime.MemStats
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				runtime.ReadMemStats(&rtm)
+
+				container.Mgr.Logger.Printf(`
+numgc: %v, pausetotalns: %v, numgoroutine: %d, cpunum: %d
+alloc: %v, totalalloc: %v, sys: %v, mallocs: %v, frees: %v, liveobjects: %v
+`,
+rtm.NumGC, rtm.PauseTotalNs, runtime.NumGoroutine(), runtime.NumCPU(),
+rtm.Alloc, rtm.TotalAlloc, rtm.Sys, rtm.Mallocs, rtm.Frees, (rtm.Mallocs - rtm.Frees),
+				)
+			case <-exitChan:
+				return
+			}
+		}
+	}()
+
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
+	close(exitChan)
+
+	container.Mgr.Logger.Printf("quit signal")
+	container.Mgr.UnRegisterNode(container.Mgr.Config.Server.RpcService.Address)
 	app.Stop()
 }
 

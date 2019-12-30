@@ -2,12 +2,7 @@
 
 ### 命令
 ```
-./pubsub start|restart|stop 
-
--c 配置文件
--d 后台运行
-
-TODO: restart
+./pubsub -c 配置文件
 ```
 
 ### 生成go protos
@@ -17,14 +12,10 @@ go get github.com/golang/protobuf/protoc-gen-go
 protoc --go_out=plugins=grpc:. ./protos/*.proto
 ```
 
-## 服务端
-
-#### 支持http和grpc方式发布数据
-
-http:
+## 服务端发布数据
 
 ``` go
-body := service.PublishBody{
+body := service.PublishMessage{
     Topics: []string{"pgygame_173060"},
     Action: "xxx",
     Body:   map[string]string{"a": "b", "b": "c"},
@@ -40,30 +31,7 @@ req := bytes.NewBuffer(data)
 resp, err := http.Post("http://127.0.0.1/release","application/json", req)
 ``` 
 
-rpc:
-
-``` go
-con, err := grpc.Dial("127.0.0.1", grpc.WithInsecure())
-if err != nil {
-    panic(err)
-}
-
-cli := protos.NewPublishClient(con)
-
-_, err = cli.Release(
-    context.Background(),
-    &protos.PublishBody{
-        Topics: []string{"pgygame_173060"},
-        Action: "xxx",
-        Body:   map[string]string{"a": "b", "b": "c"},
-    })
-```
-
-## 客户端
-
-服务器默认会有30秒间隔的保活心跳包检测，客户端收到 { "action": "heartbeat" } 消息时需回应 { "action": "nop" } 消息证明客户端存活
-服务器会在检测5次都未收到客户端响应之后断开连接
-客户端可以在1分钟内未收到服务器的心跳包断开之前的连接重新连接
+## 客户端订阅数据
 
 ``` javascript
 websocket = new WebSocket("ws://127.0.0.1:8888/subscribe?key=xxx");

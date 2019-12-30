@@ -9,18 +9,25 @@ build:
 	mkdir dist
 	go build ${LDFLAGS} -o ./dist/pubsub .
 
-race-build:
+build-race:
 	rm -rf dist
 	mkdir dist
 	go build -race ${LDFLAGS} -o ./dist/pubsub .
 
+build-all:
+	rm -rf dist
+	mkdir dist
+	go build -race ${LDFLAGS} -o ./dist/pubsub .
+	go build -race -o ./dist/pub ./bench/pub/*.go
+	go build -race -o ./dist/sub ./bench/sub/*.go
+
 run:
-	go run --race main.go start -c ./config.toml
+	go run --race main.go -c ./config.toml
 
 
-start: race-build
+start: build-race
 	chmod -R +x ./dist/pubsub
-	GODEBUG=gctrace=1 ./dist/pubsub start
+	GODEBUG=gctrace=1 ./dist/pubsub
 
 clean:
 	rm -rf dist
