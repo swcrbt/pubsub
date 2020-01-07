@@ -17,9 +17,11 @@ type Message struct {
 }
 
 type Dispatcher struct {
-	sync.RWMutex
-
 	createTime time.Time
+
+	topicMu      sync.RWMutex
+	clientMu     sync.RWMutex
+	nodeServerMu sync.RWMutex
 
 	topicMap      map[string]*Topic
 	clientMap     map[string]*Client
@@ -38,13 +40,13 @@ func New() *Dispatcher {
 }
 
 func (dis *Dispatcher) SetNodeServer(nodeServer map[string]*Node) {
-	dis.Lock()
+	dis.nodeServerMu.Lock()
 	dis.nodeServerMap = nodeServer
-	dis.Unlock()
+	dis.nodeServerMu.Unlock()
 }
 
 func (dis *Dispatcher) AddClient(subID string, client *Client) {
-	dis.Lock()
+	dis.clientMu.Lock()
 	if subID != "" {
 		if clientID, ok := dis.subClientMap[subID]; ok {
 			if cli, ok := dis.clientMap[clientID]; ok {
@@ -54,12 +56,12 @@ func (dis *Dispatcher) AddClient(subID string, client *Client) {
 		dis.subClientMap[subID] = client.ID
 	}
 	dis.clientMap[client.ID] = client
-	dis.Unlock()
+	dis.clientMu.Unlock()
 }
 
 func (dis *Dispatcher) RemoveClient(clientID string) {
-	dis.Lock()
-	defer dis.Unlock()
+	dis.clientMu.Lock()
+	defer dis.clientMu.Unlock()
 	if _, ok := dis.clientMap[clientID]; !ok {
 		return
 	}
@@ -67,8 +69,8 @@ func (dis *Dispatcher) RemoveClient(clientID string) {
 }
 
 func (dis *Dispatcher) Publish(topicNames []string, action string, body interface{}) {
-	dis.RLock()
-	defer dis.RUnlock()
+	dis.topicMu.RLock()
+	defer dis.topicMu.RUnlock()
 
 	for _, topicName := range topicNames {
 		topic, ok := dis.topicMap[topicName]
@@ -103,15 +105,15 @@ func (dis *Dispatcher) Subscribe(topicName string, clientID string) {
 		return
 	}
 
-	dis.RLock()
+	dis.topicMu.RLock()
 	topic, ok := dis.topicMap[topicName]
-	dis.RUnlock()
+	dis.topicMu.RUnlock()
 
 	if !ok {
 		topic = NewTopic(topicName)
-		dis.Lock()
+		dis.topicMu.Lock()
 		dis.topicMap[topicName] = topic
-		dis.Unlock()
+		dis.topicMu.Unlock()
 	}
 
 	topic.AddClientChannel(clientID)
@@ -122,11 +124,11 @@ func (dis *Dispatcher) UnSubscribe(topicName string, clientID string) {
 		return
 	}
 
-	dis.RLock()
+	dis.topicMu.RLock()
 	if topic, ok := dis.topicMap[topicName]; ok {
 		topic.RemoveClientChannel(clientID)
 	}
-	dis.RUnlock()
+	dis.topicMu.RUnlock()
 }
 
 func (dis *Dispatcher) NotifyNodeMessage(topicNames []string, action string, body interface{}) {
@@ -135,8 +137,8 @@ func (dis *Dispatcher) NotifyNodeMessage(topicNames []string, action string, bod
 		return
 	}
 
-	dis.RLock()
-	defer dis.RUnlock()
+	dis.nodeServerMu.RLock()
+	defer dis.nodeServerMu.RUnlock()
 
 	for server := range dis.nodeServerMap {
 		con, err := grpc.Dial(server, grpc.WithInsecure())
